@@ -22,18 +22,12 @@
 
 import React, { useState, useEffect } from 'react';
 import FloatingDock from './components/ui/floating-dock';
-import RainbowButton from './components/magicui/rainbow-button';
-import { LanguageSwitch } from './components/ui/language-switch';
-import { motion, AnimatePresence } from 'framer-motion';
 import { translations } from './locales/translations';
-import { NumberTicker } from './components/ui/number-ticker';
 import { fireSmallConfetti } from './components/ui/confetti';
 import { Toast } from './components/ui/toast';
 import ReactDOM from 'react-dom/client';
-import AnimatedShinyText from './components/magicui/animated-shiny-text';
 import { HeroSection } from './components/sections/hero-section';
 import { Navbar } from './components/ui/navbar';
-import { FocusCards } from './components/ui/focus-cards';
 import { cn } from './lib/utils';
 import { ToolsSection } from './components/sections/tools-section';
 import { ProjectsSection } from './components/sections/projects-section';

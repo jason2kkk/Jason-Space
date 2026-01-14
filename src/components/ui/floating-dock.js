@@ -25,7 +25,6 @@
  */
 
 import React, { useRef, useState, useEffect } from "react";
-import ReactDOM from 'react-dom/client';
 import { cn } from "../../lib/utils";
 import {
   AnimatePresence,
@@ -34,19 +33,7 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import { 
-  HomeIcon, 
-  MailIcon, 
-  PhoneIcon,
-  FileTextIcon,
-  HeartIcon,
-  FolderIcon,
-  Divide
-} from "lucide-react";
-import { Toast } from './toast';
 import { translations } from '../../locales/translations';
-import { fireConfetti } from './confetti';
-import { getDockItems } from '../../config/dock-items';
 
 /**
  * 浮动Dock组件
@@ -58,7 +45,8 @@ import { getDockItems } from '../../config/dock-items';
  * @param {Object} props - 其他属性
  */
 export const FloatingDock = ({ lang, isNearFooter, setIsNearFooter, items, ...props }) => {
-  const t = translations[lang];
+  // eslint-disable-next-line no-unused-vars
+  const _t = translations[lang];
 
   useEffect(() => {
     /**
@@ -67,7 +55,6 @@ export const FloatingDock = ({ lang, isNearFooter, setIsNearFooter, items, ...pr
      */
     const checkFooterButtonsVisibility = () => {
       const footer = document.querySelector('footer');
-      const footerButtons = footer?.querySelector('.flex.items-center.gap-4');
       
       if (footer) {
         const footerRect = footer.getBoundingClientRect();

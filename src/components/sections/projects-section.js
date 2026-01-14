@@ -130,7 +130,7 @@ const StackedImages = ({ images, currentIndex }) => {
         >
           <img
             src={images[currentIndex]}
-            alt={`Project image ${currentIndex + 1}`}
+            alt={`Project ${currentIndex + 1}`}
             className="w-full h-full object-cover rounded-[32px] shadow-lg dark:shadow-gray-800/50 border-[6px] border-gray-200/60 dark:border-white/30"
           />
         </motion.div>
@@ -166,7 +166,7 @@ const StackedImages = ({ images, currentIndex }) => {
           >
             <img
               src={images[nextIndex]}
-              alt={`Stack image ${nextIndex + 1}`}
+              alt={`Stack ${nextIndex + 1}`}
               className="w-full h-full object-cover rounded-[32px] shadow-lg dark:shadow-gray-800/50 border-[6px] border-gray-200/60 dark:border-white/30"
             />
           </motion.div>
@@ -179,7 +179,8 @@ const StackedImages = ({ images, currentIndex }) => {
 const ProjectCard = ({ project, index, layout = false, lang, projects }) => {
   const [open, setOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [currentProjectIndex, setCurrentProjectIndex] = useState(index);
+  // eslint-disable-next-line no-unused-vars
+  const [currentProjectIndex, _setCurrentProjectIndex] = useState(index);
   const containerRef = useRef(null);
   const { onCardClose } = useContext(CarouselContext);
 
@@ -228,20 +229,6 @@ const ProjectCard = ({ project, index, layout = false, lang, projects }) => {
   const handleClose = () => {
     setOpen(false);
     onCardClose(index);
-  };
-
-  const handlePrevProject = () => {
-    setCurrentProjectIndex((prev) => {
-      const newIndex = prev > 0 ? prev - 1 : projects.length - 1;
-      return newIndex;
-    });
-  };
-
-  const handleNextProject = () => {
-    setCurrentProjectIndex((prev) => {
-      const newIndex = prev < projects.length - 1 ? prev + 1 : 0;
-      return newIndex;
-    });
   };
 
   // 获取当前项目

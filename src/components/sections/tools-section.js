@@ -1,6 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { cn } from '../../lib/utils';
+import React, { useEffect, useState } from 'react';
 import { AnimatedText } from '../magicui/animated-text';
 import { analytics } from '../../lib/analytics';
 
@@ -54,7 +52,6 @@ export const ToolsSection = ({ lang }) => {
   const [tools1] = useState(createMultipleToolSets(5)); // 增加到5组
   const [tools2] = useState(createMultipleToolSets(5)); // 不需要倒序，通过滚动方向控制
   const singleSetWidth = tools.length * 200; // 单组宽度
-  const containerWidth = singleSetWidth * 5; // 总宽度
 
   // 第一行向左滚动
   useEffect(() => {

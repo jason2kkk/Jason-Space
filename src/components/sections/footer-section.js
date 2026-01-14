@@ -1,19 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
-import { Github, Twitter, Linkedin } from 'lucide-react';
-
-const socialLinks = [
-  { icon: <Github />, href: 'https://github.com/yourusername' },
-  { icon: <Twitter />, href: 'https://twitter.com/yourusername' },
-  { icon: <Linkedin />, href: 'https://linkedin.com/in/yourusername' }
-];
-
-const footerLinks = [
-  { text: '关于', href: '#about' },
-  { text: '项目', href: '#projects' },
-  { text: '联系', href: '#contact' }
-];
 
 const FooterButton = ({ item, variants, index }) => {
   const [hovered, setHovered] = useState(false);

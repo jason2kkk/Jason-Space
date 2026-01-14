@@ -13,7 +13,7 @@
  * - 动画完成回调函数
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
 import "./BounceCards.css";
 
@@ -39,7 +39,6 @@ const BounceCards = ({
 }) => {
   const containerRef = useRef(null); // 容器DOM引用
   const animationsRef = useRef([]); // 存储动画实例的引用
-  const [hasAnimated, setHasAnimated] = useState(false); // 跟踪动画是否已执行
   const previousIsOpenRef = useRef(isOpen); // 存储上一次的isOpen状态
 
   /**
@@ -133,8 +132,6 @@ const BounceCards = ({
 
         animationsRef.current.push(timeline);
       });
-      
-      setHasAnimated(true);
     } else {
       // 收起动画
       console.log('Starting collapse animation');

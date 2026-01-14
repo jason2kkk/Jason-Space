@@ -42,8 +42,6 @@ import { Toast } from '../ui/toast';
  * @param {Function} onDownload - 下载简历的回调函数
  */
 export const HeroSection = ({ lang, t, onDownload }) => {
-  // 当前活跃的标签索引
-  const [activeTagIndex, setActiveTagIndex] = useState(0);
 
   // 工作经历数据
   const experiences = [

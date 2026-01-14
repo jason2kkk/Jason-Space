@@ -2,12 +2,11 @@ import React, { useRef } from "react";
 import { CardContainer, CardBody, CardItem } from "./3d-card";
 import { NumberTicker } from "./number-ticker";
 import { ArrowRight } from "lucide-react";
-import { useInView, motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../../lib/utils";
 
 export const Test3DCard = ({ lang = 'zh' }) => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: false });
   
   const t = {
     title: lang === 'zh' ? '我的小红书' : 'My RedNote',
