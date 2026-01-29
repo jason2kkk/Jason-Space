@@ -79,34 +79,27 @@ const XiaohongshuCard = ({ name, followers, href, lang }) => {
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className={cn(
-        "flex-1 min-w-0 flex items-center gap-3 p-3 sm:p-4 rounded-2xl",
-        "bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20",
-        "border border-red-100 dark:border-red-800/30",
-        "hover:shadow-md transition-all duration-200"
+        "flex-1 min-w-0 flex items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl",
+        "bg-zinc-50 dark:bg-zinc-800/50",
+        "border border-zinc-200 dark:border-zinc-700/50",
+        "hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-600 transition-all duration-200"
       )}
     >
-      {/* 小红书 Logo */}
-      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center shrink-0">
-        <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm4 0h-2v-6h2v6zm-2-8c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-4 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
-        </svg>
-      </div>
-      
       {/* 信息 */}
       <div className="flex-1 min-w-0">
         <p className="text-sm sm:text-base font-semibold text-zinc-900 dark:text-zinc-100 truncate">
           {name}
         </p>
-        <p className="text-xs sm:text-sm text-red-600 dark:text-red-400">
-          {followers} {lang === 'zh' ? '粉丝' : 'followers'}
+        <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
+          {lang === 'zh' ? '粉丝量：' : 'Followers: '}{followers}
         </p>
       </div>
       
       {/* 跳转按钮 */}
       <div className={cn(
         "px-3 py-1.5 rounded-full text-xs font-medium shrink-0",
-        "bg-red-500 text-white",
-        "hover:bg-red-600 transition-colors"
+        "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900",
+        "hover:opacity-80 transition-opacity"
       )}>
         {lang === 'zh' ? '主页' : 'Profile'}
       </div>
@@ -367,13 +360,13 @@ export const HeroSection = ({ lang, t }) => {
           <div className="flex gap-3 sm:gap-4">
             <XiaohongshuCard
               name="2k"
-              followers="10,000+"
+              followers="15,000+"
               href="https://xhslink.com/m/dP5NFoP6Wn"
               lang={lang}
             />
             <XiaohongshuCard
               name="2kk"
-              followers="1,000+"
+              followers="2,000+"
               href="https://xhslink.com/m/6cQte1ftsiI"
               lang={lang}
             />
