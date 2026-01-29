@@ -234,9 +234,9 @@ export const HeroSection = ({ lang, t }) => {
       appStoreUrl: 'https://apps.apple.com/cn/app/do-it/id6743646015',
       stats: [
         { icon: '👥', label: { zh: '下载 13,000+', en: '13,000+ Downloads' } },
-        { icon: '💰', label: { zh: '收入 $4,000', en: '$4,000 Revenue' } },
+        { icon: '💰', label: { zh: '4000美元', en: '$4,000' } },
         { icon: '📈', label: { zh: '付费率 40%+', en: '40%+ Paid Rate' } },
-        { icon: '🏆', label: { zh: '效率榜 #48', en: 'Productivity #48' } },
+        { icon: '🏆', label: { zh: 'App Store效率榜#48', en: 'App Store Productivity #48' } },
         { icon: '🔥', label: { zh: '即刻发布会多次TOP1', en: 'Multiple TOP1 on Jike' } },
       ]
     },
