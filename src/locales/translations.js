@@ -1,7 +1,7 @@
 export const translations = {
   zh: {
     name: "何鹏伟",
-    role: "Jason",
+    role: "AI产品经理",
     tags: [
       "产品设计",
       "交互设计",
@@ -38,7 +38,7 @@ export const translations = {
   },
   en: {
     name: "Jason He",
-    role: "Product Designer",
+    role: "AI Product Manager",
     tags: [
       "Product Design",
       "UI/UX Design",

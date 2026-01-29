@@ -1,5 +1,5 @@
 import React from 'react';
-import { Test3DCard } from '../ui/test-3d-card';
+import { Test3DCard } from '../ui/social-card';
 import { Folder } from '../ui/folder';
 
 export const ShowcaseSection = ({ lang }) => {

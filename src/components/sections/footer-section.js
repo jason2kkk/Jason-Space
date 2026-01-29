@@ -111,9 +111,9 @@ export const FooterSection = ({ lang, isNearFooter, items }) => {
   };
 
   return (
-    <footer className="pt-8 pb-16 bg-white dark:bg-black relative">
-      <div className="container mx-auto px-8">
-        <div className="flex flex-col items-center justify-center gap-8">
+    <footer className="pt-6 sm:pt-8 pb-12 sm:pb-16 bg-white dark:bg-black relative">
+      <div className="container mx-auto px-4 sm:px-8">
+        <div className="flex flex-col items-center justify-center gap-6 sm:gap-8">
           <AnimatePresence mode="wait">
             {isNearFooter && (
               <motion.div
@@ -142,7 +142,7 @@ export const FooterSection = ({ lang, isNearFooter, items }) => {
                     staggerChildren: 0.05
                   }
                 }}
-                className="flex items-center gap-4 mb-8"
+                className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8"
               >
                 {items.filter(item => item.type !== 'separator').map((item, index) => (
                   <FooterButton
@@ -169,7 +169,7 @@ export const FooterSection = ({ lang, isNearFooter, items }) => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="text-sm text-center px-4 mb-2"
+                  className="text-xs sm:text-sm text-center px-4 mb-2"
                 >
                   {techDescription}
                 </motion.div>
@@ -180,18 +180,13 @@ export const FooterSection = ({ lang, isNearFooter, items }) => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="text-center"
                 >
                   <p className={cn(
-                    "text-sm mb-2",
+                    "text-xs sm:text-sm mb-1 sm:mb-2",
                     lang === 'zh' ? "font-['AlibabaPuHuiTi-Regular']" : ""
                   )}>
                     {lang === 'zh' ? '© 2025 何鹏伟. 保留所有权利.' : '© 2025 Jason He. All rights reserved.'}
-                  </p>
-                  <p className={cn(
-                    "text-sm text-gray-400",
-                    lang === 'zh' ? "font-['AlibabaPuHuiTi-Regular']" : ""
-                  )}>
-                    {lang === 'zh' ? '暂未适配移动端，感谢理解🙏' : 'Mobile version coming soon, thank you for your understanding🙏'}
                   </p>
                 </motion.div>
               )}

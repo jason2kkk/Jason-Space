@@ -4,8 +4,6 @@ import {
   PhoneIcon,
   FileTextIcon,
   HeartIcon,
-  FolderIcon,
-  LayoutGridIcon,
 } from "lucide-react";
 import { fireConfetti } from '../components/ui/confetti';
 import { Toast } from '../components/ui/toast';
@@ -56,32 +54,6 @@ export const getDockItems = (lang, t) => [
         top: 0, 
         behavior: "smooth",
       });
-    }
-  },
-  {
-    title: t.projects,
-    icon: <FolderIcon className="w-6 h-6" />,
-    onClick: () => {
-      const projectsSection = document.getElementById('projects');
-      if (projectsSection) {
-        projectsSection.scrollIntoView({ 
-          behavior: "smooth",
-          block: "start"
-        });
-      }
-    }
-  },
-  {
-    title: lang === 'zh' ? '其他' : 'Others',
-    icon: <LayoutGridIcon className="w-6 h-6" />,
-    onClick: () => {
-      const toolsSection = document.getElementById('tools');
-      if (toolsSection) {
-        toolsSection.scrollIntoView({ 
-          behavior: "smooth",
-          block: "start"
-        });
-      }
     }
   },
   {

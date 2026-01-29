@@ -23,39 +23,15 @@
 import React, { useState, useEffect } from 'react';
 import FloatingDock from './components/ui/floating-dock';
 import { translations } from './locales/translations';
-import { fireSmallConfetti } from './components/ui/confetti';
-import { Toast } from './components/ui/toast';
-import ReactDOM from 'react-dom/client';
 import { HeroSection } from './components/sections/hero-section';
 import { Navbar } from './components/ui/navbar';
 import { cn } from './lib/utils';
-import { ToolsSection } from './components/sections/tools-section';
-import { ProjectsSection } from './components/sections/projects-section';
+import { analytics } from './lib/analytics';
 import { FooterSection } from './components/sections/footer-section';
 import { getDockItems } from './config/dock-items';
-import { Test3DCard } from './components/ui/test-3d-card';
 import { SplashScreen } from './components/ui/splash-screen';
-import { analytics } from './lib/analytics';
-import { Globe } from './components/ui/globe';
 import ClickSpark from './components/ui/click-spark';
-import { Folder } from './components/ui/folder';
-import Aurora from './components/ui/Aurora';
 
-/**
- * 下载文件的辅助函数
- * 创建一个临时链接元素，触发下载，然后移除该元素
- * 
- * @param {string} url - 文件URL
- * @param {string} filename - 下载后的文件名
- */
-const downloadFile = (url, filename) => {
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
 
 /**
  * 应用程序主组件
@@ -110,123 +86,6 @@ function App() {
     setCurrentLang(prev => prev === 'zh' ? 'en' : 'zh');
   };
 
-  /**
-   * 处理简历下载
-   * 显示提示、触发彩带效果，然后下载文件
-   * 
-   * @param {Event} e - 点击事件对象，用于定位彩带效果
-   */
-  const handleDownload = async (e) => {
-    try {
-      analytics.trackResumeDownload(); // 记录简历下载事件
-      
-      // 显示下载中提示
-      const toast = document.createElement('div');
-      toast.id = 'toast';
-      document.body.appendChild(toast);
-      
-      const root = ReactDOM.createRoot(toast);
-      root.render(
-        <Toast 
-          message={t.downloadStart} // 显示下载开始提示
-          onClose={() => {
-            setTimeout(() => {
-              if (document.body.contains(toast)) {
-                document.body.removeChild(toast);
-              }
-              root.unmount();
-            }, 800); // 从500ms增加到800ms，与Toast退出动画持续时间一致
-          }} 
-        />
-      );
-
-      // 先触发小型彩带效果
-      await fireSmallConfetti(e);
-      
-      // 然后开始下载
-      downloadFile("/assets/resume.pdf", `${t.name}的简历.pdf`);
-
-    } catch (err) {
-      console.error('下载失败:', err);
-    }
-  };
-
-  // 项目卡片数据
-  const projectCards = [
-    {
-      id: 'game-elimination', // 项目唯一标识
-      title: "消消乐游戏", // 项目标题
-      src: "/images/消消乐游戏页面备份 6.png", // 项目图片路径
-      category: "游戏开发", // 项目类别
-      platform: "H5", // 项目平台
-      interactionType: "游戏" // 交互类型
-    },
-    {
-      id: 'alumni-homepage',
-      title: "校友会首页",
-      src: "/images/校友会首页.png",
-      category: "门户网站",
-      platform: "PC",
-      interactionType: "网页"
-    },
-    {
-      id: 'voting-system',
-      title: "投票系统",
-      src: "/images/投票01.png",
-      category: "功能系统",
-      platform: "H5",
-      interactionType: "功能"
-    },
-    {
-      id: 'spring-festival',
-      title: "春节活动",
-      src: "/images/project3.jpg",
-      category: "节日活动",
-      platform: "H5",
-      interactionType: "活动"
-    },
-    {
-      id: 'new-year',
-      title: "新年活动",
-      src: "/images/IMG_8612.PNG",
-      category: "节日活动",
-      platform: "H5",
-      interactionType: "活动"
-    },
-    {
-      id: 'lantern-festival',
-      title: "元宵节活动",
-      src: "/images/IMG_8613.PNG",
-      category: "节日活动",
-      platform: "H5",
-      interactionType: "活动"
-    },
-    {
-      id: 'campus-navigation',
-      title: "校园导航",
-      src: "/images/IMG_0603.PNG",
-      category: "校园服务",
-      platform: "H5",
-      interactionType: "功能"
-    },
-    {
-      id: 'campus-community',
-      title: "校园社区",
-      src: "/images/IMG_2099.PNG",
-      category: "社交平台",
-      platform: "H5",
-      interactionType: "社交"
-    },
-    {
-      id: 'campus-activity',
-      title: "校园活动",
-      src: "/images/IMG_3223.PNG",
-      category: "校园服务",
-      platform: "H5",
-      interactionType: "活动"
-    }
-  ];
-
   useEffect(() => {
     // 初始化埋点工具
     analytics.init();
@@ -250,60 +109,15 @@ function App() {
           }} />
         ) : (
           <>
-            <Aurora 
-              colorStops={["#00FFFF", "#E5B3FF", "#00FFFF"]}
-              amplitude={0.6}
-              blend={0.5}
-            />
             <Navbar 
               currentLang={currentLang} 
               onToggle={toggleLanguage}
               isDark={isDark}
               onThemeToggle={handleThemeToggle}
             />
-            <div className="pt-32 min-h-[90vh] relative z-20">
-              <div className="relative z-20 flex min-h-[70vh] items-center">
-                <HeroSection 
-                  lang={currentLang} 
-                  t={t} 
-                  onDownload={handleDownload} 
-                />
-                <div className="relative w-1/2 flex items-center justify-center">
-                  <div className="relative w-full h-[550px] mt-[-30px]">
-                    <Globe lang={currentLang} />
-                  </div>
-                </div>
-              </div>
+            <div className="pt-16 sm:pt-24 relative z-20">
+              <HeroSection lang={currentLang} t={t} />
             </div>
-
-            <div className="-mt-10 pt-20 min-h-screen bg-gradient-to-b from-white via-gray-50 to-gray-50 dark:from-black dark:via-black dark:to-black relative z-10" id="projects">
-              <div className="container mx-auto px-8">
-                <ProjectsSection projects={projectCards} lang={currentLang} />
-                <div className="-mt-20">
-                  <ToolsSection lang={currentLang} />
-                </div>
-              </div>
-            </div>
-
-            {/* 增加间距，为文件夹组件弹出的图片预留空间 */}
-            <div className="h-60"></div>
-
-            {/* 3D Card and Folder Animation */}
-            <div className="bg-white dark:bg-black py-24">
-              <div className="container mx-auto px-8">
-                <div className="flex flex-col lg:flex-row gap-12 items-end justify-center min-h-[450px]">
-                  <div className="w-full lg:w-1/2">
-                    <Test3DCard lang={currentLang} />
-                  </div>
-                  <div className="w-full lg:w-1/2 flex justify-center">
-                    <Folder />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 增加与页脚之间的间距 */}
-            <div className="h-60"></div>
 
             <FooterSection 
               lang={currentLang} 

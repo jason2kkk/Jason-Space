@@ -1,427 +1,317 @@
 /**
  * @file hero-section.js
- * @description 首屏英雄区块组件，展示个人主要信息和工作经历
- * 
- * 主要功能：
- * 1. 展示个人姓名、职业和简介
- * 2. 显示技能标签轮播动画
- * 3. 展示工作经历时间轴
- * 4. 提供简历下载功能
- * 5. 支持中英文切换
- * 
- * 动画效果：
- * - 组件入场渐显动画
- * - 技能标签无缝滚动
- * - 工作经历时间轴动画
- * - 下载按钮悬停效果
- * - 滚动指示箭头动画
- * 
- * 交互功能：
- * - 点击标签显示提示
- * - 点击下载按钮触发下载
- * - 点击箭头滚动到项目区域
- * - 响应语言切换实时更新
+ * @description 首屏英雄区块组件，展示个人主要信息和独立开发作品
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { NumberTicker } from '../ui/number-ticker';
-import RainbowButton from '../magicui/rainbow-button';
-import AnimatedShinyText from '../magicui/animated-shiny-text';
+import { BadgeCheck, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { ChevronDownIcon } from 'lucide-react';
-import ReactDOM from 'react-dom/client';
-import { Toast } from '../ui/toast';
 
-/**
- * 首屏英雄区块组件
- * 展示个人信息、工作经历和技能标签
- * 
- * @param {string} lang - 当前语言（'zh'或'en'）
- * @param {Object} t - 翻译文本对象
- * @param {Function} onDownload - 下载简历的回调函数
- */
-export const HeroSection = ({ lang, t, onDownload }) => {
+// App Store 按钮组件
+const AppStoreButton = ({ href, lang }) => {
+  if (!href) return null;
+  
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn(
+        "inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl",
+        "bg-black text-white dark:bg-white dark:text-black",
+        "hover:opacity-90 active:scale-95 transition-all",
+        "text-sm font-medium shrink-0"
+      )}
+    >
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+      </svg>
+      <div className="flex flex-col items-start leading-tight">
+        <span className="text-[10px] opacity-80">{lang === 'zh' ? '下载于' : 'Download on the'}</span>
+        <span className="text-sm font-semibold">App Store</span>
+      </div>
+    </a>
+  );
+};
 
-  // 工作经历数据
-  const experiences = [
+// 数据标签组件（类似编辑精选样式）
+const StatsBadge = ({ stats, lang }) => {
+  if (!stats || stats.length === 0) return null;
+  
+  return (
+    <div className="flex flex-wrap gap-2 mt-3">
+      {stats.map((stat, index) => (
+        <span
+          key={index}
+          className={cn(
+            "inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium",
+            "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30",
+            "text-blue-700 dark:text-blue-300",
+            "border border-blue-100 dark:border-blue-800/50",
+            "shadow-sm"
+          )}
+        >
+          {stat.icon && <span className="mr-1">{stat.icon}</span>}
+          {stat.label[lang]}
+        </span>
+      ))}
+    </div>
+  );
+};
+
+// 图片灯箱组件
+const ImageLightbox = ({ image, title, isOpen, onClose }) => {
+  if (!isOpen) return null;
+  
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8"
+          onClick={onClose}
+        >
+          {/* 模糊遮罩背景 */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+          />
+          
+          {/* 关闭按钮 */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 sm:top-8 sm:right-8 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+          
+          {/* 大图 */}
+          <motion.img
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            src={image}
+            alt={title}
+            className="relative max-w-full max-h-[90vh] w-auto h-auto rounded-2xl sm:rounded-3xl shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// 项目卡片组件
+const ProjectCard = ({ project, lang, index }) => {
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        className="flex flex-col gap-4"
+      >
+        {/* 项目图片 - 可点击 */}
+        <div 
+          className={cn(
+            "relative overflow-hidden rounded-2xl sm:rounded-3xl cursor-pointer",
+            "bg-gradient-to-br",
+            project.bgGradient,
+            "p-4 sm:p-6",
+            "transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          )}
+          onClick={() => setIsLightboxOpen(true)}
+        >
+          <img
+            src={project.image}
+            alt={project.title[lang]}
+            className="w-full h-auto rounded-xl sm:rounded-2xl shadow-2xl"
+            loading="lazy"
+          />
+          {/* 悬停提示 */}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/10 transition-colors rounded-2xl sm:rounded-3xl">
+            <span className="opacity-0 hover:opacity-100 text-white text-sm font-medium px-4 py-2 bg-black/50 rounded-full backdrop-blur-sm transition-opacity">
+              {lang === 'zh' ? '点击查看大图' : 'Click to enlarge'}
+            </span>
+          </div>
+        </div>
+        
+        {/* 项目信息和按钮 */}
+        <div className="px-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                {project.title[lang]}
+              </h3>
+              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+                {project.subtitle[lang]}
+              </p>
+            </div>
+            <AppStoreButton href={project.appStoreUrl} lang={lang} />
+          </div>
+          
+          {/* 数据标签 */}
+          <StatsBadge stats={project.stats} lang={lang} />
+        </div>
+      </motion.div>
+      
+      {/* 图片灯箱 */}
+      <ImageLightbox
+        image={project.image}
+        title={project.title[lang]}
+        isOpen={isLightboxOpen}
+        onClose={() => setIsLightboxOpen(false)}
+      />
+    </>
+  );
+};
+
+export const HeroSection = ({ lang, t }) => {
+  // 项目数据 - 顺序：DoitMac、Tracck、Aha、评审工具、Doit
+  const projects = [
     {
-      period: {
-        zh: "2023.08—至今",
-        en: "2023.08—Present"
-      },
-      company: {
-        zh: "珠海达酷互动",
-        en: "Zhuhai Dakuu"
-      },
-      role: {
-        zh: "助理运营经理",
-        en: "Assistant Manager"
-      },
-      isCurrent: true // 标记为当前工作
+      id: 'doit-mac',
+      title: { zh: 'Do it!', en: 'Do it!' },
+      subtitle: { zh: '一款简单漂亮的任务规划App', en: 'A simple and beautiful task planning app' },
+      image: '/images/DoitMac.png',
+      bgGradient: 'from-blue-100 via-blue-50 to-cyan-50 dark:from-blue-900/50 dark:via-blue-800/30 dark:to-cyan-900/30',
+      appStoreUrl: 'https://apps.apple.com/cn/app/do-it/id6743646015',
+      stats: [
+        { icon: '👥', label: { zh: '下载 13,000+', en: '13,000+ Downloads' } },
+        { icon: '💰', label: { zh: '收入 $4,000', en: '$4,000 Revenue' } },
+        { icon: '📈', label: { zh: '付费率 40%+', en: '40%+ Paid Rate' } },
+        { icon: '🏆', label: { zh: '效率榜 #48', en: 'Productivity #48' } },
+        { icon: '🔥', label: { zh: '即刻发布会多次TOP1', en: 'Multiple TOP1 on Jike' } },
+      ]
     },
     {
-      period: {
-        zh: "2022.06—2023.08",
-        en: "2022.06—2023.08"
-      },
-      company: {
-        zh: "深圳淘乐网络",
-        en: "Shenzhen Taole"
-      },
-      role: {
-        zh: "产品运营",
-        en: "Product Operations"
-      },
-      isCurrent: false
+      id: 'tracck',
+      title: { zh: 'Tracck!', en: 'Tracck!' },
+      subtitle: { zh: '一款博主商单管理、排期、收入统计App', en: 'A creator business management app' },
+      image: '/images/Tracck.png',
+      bgGradient: 'from-gray-50 to-white dark:from-gray-800 dark:to-gray-900',
+      appStoreUrl: 'https://apps.apple.com/cn/app/tracck/id6743366923',
+      stats: [
+        { icon: '👥', label: { zh: '下载 2,000+', en: '2,000+ Downloads' } },
+        { icon: '💰', label: { zh: '收入 $2,000', en: '$2,000 Revenue' } },
+      ]
     },
     {
-      period: {
-        zh: "2021.11—2022.05",
-        en: "2021.11—2022.05"
-      },
-      company: {
-        zh: "腾讯音乐娱乐",
-        en: "Tencent Music Entertainment"
-      },
-      role: {
-        zh: "产品运营",
-        en: "Product Operations"
-      },
-      isCurrent: false
+      id: 'aha',
+      title: { zh: 'Aha', en: 'Aha' },
+      subtitle: { zh: 'AI智能对话助手', en: 'AI Smart Chat Assistant' },
+      image: '/images/Aha.png',
+      bgGradient: 'from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-700',
+      appStoreUrl: null,
+      stats: null
+    },
+    {
+      id: 'review-tool',
+      title: { zh: '评审工具', en: 'Review Tool' },
+      subtitle: { zh: '产品评审效率工具', en: 'Product Review Efficiency Tool' },
+      image: '/images/评审工具.png',
+      bgGradient: 'from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800',
+      appStoreUrl: null,
+      stats: null
     }
   ];
 
-  /**
-   * 生成循环标签数组
-   * 将标签数组复制三份，用于实现无缝滚动效果
-   * 
-   * @param {string} currentLang - 当前语言
-   * @returns {Array} 循环标签数组
-   */
-  const getCircularTags = (currentLang) => {
-    const currentTags = t.tags;
-    return [...currentTags, ...currentTags, ...currentTags];
-  };
-
-  // 标签滚动偏移量
-  const [offset, setOffset] = useState(0);
-
-  // 设置标签自动滚动效果
-  useEffect(() => {
-    // 获取标签容器和第一个标签元素
-    const tagContainer = document.querySelector('.tags-container');
-    const firstTag = tagContainer?.firstElementChild;
-    if (!firstTag) return;
-
-    // 计算标签宽度和间距
-    const tagWidth = firstTag.offsetWidth;
-    const gap = 12; // gap-3 = 12px
-    // 计算一组标签的总宽度
-    const singleSetWidth = t.tags.length * (tagWidth + gap);
-    
-    let animationFrameId;
-    let startTime = performance.now();
-    const speed = 50; // 控制滚动速度的参数
-    
-    /**
-     * 动画函数，实现标签的平滑滚动
-     * @param {number} currentTime - 当前时间戳
-     */
-    const animate = (currentTime) => {
-      const elapsed = currentTime - startTime;
-      // 从右向左滚动，所以是正值
-      let newOffset = (elapsed * speed / 1000) % singleSetWidth;
-      
-      // 当第一组标签滚动完毕后，从第二组开始显示，实现无缝衔接
-      if (newOffset >= singleSetWidth) {
-        startTime = currentTime - (newOffset % singleSetWidth) * (1000 / speed);
-        newOffset = newOffset % singleSetWidth;
-      }
-      
-      setOffset(newOffset);
-      animationFrameId = requestAnimationFrame(animate);
-    };
-    
-    // 启动动画
-    animationFrameId = requestAnimationFrame(animate);
-    
-    // 组件卸载时清理动画
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [lang, t.tags]); // 当语言或标签变化时重新设置动画
-
-  /**
-   * 平滑滚动到项目展示区块
-   */
-  const scrollToProjects = () => {
-    const projectsSection = document.getElementById('projects');
-    if (projectsSection) {
-      projectsSection.scrollIntoView({ 
-        behavior: 'smooth', // 平滑滚动
-        block: 'start' // 滚动到顶部对齐
-      });
-    }
-  };
-
-  /**
-   * 显示提示消息
-   * @param {string} message - 提示消息内容
-   */
-  const showToast = (message) => {
-    // 创建Toast容器
-    const toast = document.createElement('div');
-    toast.id = 'toast';
-    document.body.appendChild(toast);
-    
-    // 创建React根节点并渲染Toast组件
-    const root = ReactDOM.createRoot(toast);
-    root.render(
-      <Toast 
-        message={message}
-        onClose={() => {
-          // Toast关闭后的清理函数
-          setTimeout(() => {
-            if (document.body.contains(toast)) {
-              document.body.removeChild(toast); // 移除DOM节点
-            }
-            root.unmount(); // 卸载React组件
-          }, 800); // 从500ms增加到800ms，确保动画完全结束
-        }} 
-      />
-    );
-  };
-
-  // 渲染英雄区块
   return (
-    <div className="hero-section flex flex-col justify-center w-1/2 ml-[12%] px-8 relative z-10">
-      {/* 主要内容区域，带入场动画 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} // 初始状态：透明且向下偏移
-        animate={{ opacity: 1, y: 0 }} // 动画目标：完全显示且回到原位
-        transition={{ duration: 0.8 }} // 动画持续时间
-        className="space-y-8"
-      >
-        {/* 姓名标题区域，根据语言调整高度 */}
-        <div className={cn(
-          "space-y-2",
-          lang === 'zh' ? "h-[120px]" : "h-[90px]" // 中文和英文使用不同的高度
-        )}>
-          <motion.h1
-            key={`name-${lang}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className={cn(
-              "text-6xl font-bold tracking-tight",
-              "text-gray-900 dark:text-gray-100",
-              lang === 'zh' ? "font-['AlibabaPuHuiTi-Bold'] tracking-wider" : ""
-            )}
-          >
-            {t.name}
-          </motion.h1>
-          <AnimatePresence mode="wait">
-            {lang === 'zh' && (
-              <motion.h2
-                key="role"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-                className={cn(
-                  "text-3xl font-medium",
-                  "text-gray-600 dark:text-gray-300",
-                  lang === 'zh' ? "font-['AlibabaPuHuiTi-Medium']" : ""
-                )}
-              >
-                {t.role}
-              </motion.h2>
-            )}
-          </AnimatePresence>
-        </div>
-        
+    <section className="relative w-full">
+      <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 pt-4 sm:pt-8">
+        {/* 个人信息头部 */}
         <motion.div
-          key={`tags-${lang}`}
-          className={cn(
-            "relative w-[480px] overflow-hidden -ml-4 cursor-pointer",
-            lang === 'zh' ? "-mt-4" : "-mt-8"
-          )}
-          onClick={() => showToast(t.tagsHint)}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col items-start gap-4 mb-8 sm:mb-12"
         >
-          <div
-            className="tags-container flex gap-3 transform will-change-transform backface-visibility-hidden"
-            style={{ 
-              transform: `translateX(-${offset}px)`,
-              willChange: 'transform'
-            }}
-          >
-            {getCircularTags(lang).map((tag, index) => (
-              <motion.span
-                key={`${tag}-${index}`}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                className={cn(
-                  "px-4 py-2 rounded-full text-sm whitespace-nowrap flex-shrink-0",
-                  "bg-gray-100 text-gray-800",
-                  "dark:bg-gray-800 dark:text-gray-200",
-                  "transform-gpu shadow-sm",
-                  "dark:shadow-[0_2px_8px_-2px_rgba(255,255,255,0.1)]",
-                  lang === 'zh' ? "font-['AlibabaPuHuiTi-Regular']" : ""
-                )}
-              >
-                {tag}
-              </motion.span>
-            ))}
+          {/* 头像带在线状态 */}
+          <div className="relative">
+            <div className="h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-2xl ring-1 ring-black/5 dark:ring-white/10 shadow-lg">
+              <img
+                src="/assets/avatar.jpg"
+                alt={t.name}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            {/* 在线状态指示器 */}
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white dark:border-black" />
           </div>
-          <div className="absolute inset-y-0 -left-8 w-32 pointer-events-none bg-gradient-to-r from-white via-white to-transparent dark:from-black dark:via-black" />
-          <div className="absolute inset-y-0 right-0 w-24 pointer-events-none bg-gradient-to-l from-white via-white to-transparent dark:from-black dark:via-black" />
+
+          {/* 姓名和职位 */}
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {t.name}
+              </h1>
+              <BadgeCheck className="h-5 w-5 sm:h-6 sm:w-6 text-sky-500" />
+            </div>
+            <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400">
+              {t.role}
+            </p>
+          </div>
+
+          {/* 个人简介 */}
+          <div className="text-sm sm:text-base text-zinc-700 dark:text-zinc-300 leading-relaxed space-y-3">
+            <p>
+              {lang === 'zh' 
+                ? '5年产品经验，AI独立开发者，小红书万粉科技博主，熟悉主流模型与AI产品；'
+                : '5 years of product experience, AI indie developer, tech blogger with 10k+ followers, familiar with mainstream AI models and products;'
+              }
+            </p>
+            <p>
+              {lang === 'zh' ? (
+                <>
+                  非编程背景通过Cursor独立完成4款产品落地，其中<strong className="text-zinc-900 dark:text-zinc-100">2款</strong>已上线App Store，累计用户<strong className="text-zinc-900 dark:text-zinc-100">15,000+</strong>，最高App Store排行效率类<strong className="text-zinc-900 dark:text-zinc-100">#48</strong>，即刻产品发布会多次<strong className="text-zinc-900 dark:text-zinc-100">TOP1</strong>。
+                </>
+              ) : (
+                <>
+                  Non-programming background, independently completed 4 products with Cursor, <strong className="text-zinc-900 dark:text-zinc-100">2</strong> launched on App Store, <strong className="text-zinc-900 dark:text-zinc-100">15,000+</strong> total users, peaked at <strong className="text-zinc-900 dark:text-zinc-100">#48</strong> in App Store Productivity, multiple <strong className="text-zinc-900 dark:text-zinc-100">TOP1</strong> on Jike product launches.
+                </>
+              )}
+            </p>
+          </div>
         </motion.div>
-        
-        <motion.p
-          key={`description-${lang}`}
+
+        {/* 项目展示区域 */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="text-gray-600 dark:text-gray-300 text-lg max-w-2xl space-y-1"
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mb-8"
         >
-          <div className="flex items-baseline whitespace-nowrap">
-            <AnimatedShinyText className="text-gray-600 dark:text-gray-300">
-              {lang === 'zh' ? '具备' : 'Experienced in '}
-            </AnimatedShinyText>
-            <span className="inline-flex items-baseline mx-1">
-              <NumberTicker 
-                value={30} 
-                className="text-gray-900 dark:text-gray-100 text-4xl font-bold"
-                delay={0.2}
+          <div className="mb-6">
+            <p className="text-xs sm:text-sm text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+              PROJECT
+            </p>
+            <h2 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100">
+              {lang === 'zh' ? '独立开发作品' : 'Indie Projects'}
+            </h2>
+          </div>
+
+          {/* 项目列表 */}
+          <div className="space-y-8 sm:space-y-12">
+            {projects.map((project, index) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                lang={lang}
+                index={index}
               />
-              <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">+</span>
-            </span>
-            <AnimatedShinyText className="text-gray-600 dark:text-gray-300">
-              {lang === 'zh' ? '项目落地经验' : 'successful project implementations'}
-            </AnimatedShinyText>
+            ))}
           </div>
-
-          <div className="leading-relaxed">
-            <AnimatedShinyText className="text-gray-600 dark:text-gray-300">
-              {t.description}
-            </AnimatedShinyText>
-          </div>
-        </motion.p>
-
-        <div>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`button-${lang}`}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.3 }}
-            >
-              <RainbowButton onClick={onDownload}>
-                {t.downloadButton}
-              </RainbowButton>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        <div className="mt-5">
-          <div className="space-y-6 relative text-sm">
-            <div className="relative">
-              <div 
-                className="absolute left-[9.5rem] top-[13px] h-[calc(100%-85px)] w-[1px] bg-gray-100 dark:bg-gray-700 -translate-x-1/2 cursor-pointer"
-                onClick={() => showToast(t.experienceHint)}
-              />
-
-              <div className="space-y-6">
-                {experiences.map((exp, index) => (
-                  <div 
-                    key={index}
-                    className={cn(
-                      "flex items-center gap-12 relative",
-                      exp.isCurrent 
-                        ? "text-gray-900 dark:text-gray-100" 
-                        : "text-gray-400 dark:text-gray-500"
-                    )}
-                  >
-                    <motion.span 
-                      key={`period-${lang}-${index}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                      className="w-36 flex-shrink-0 font-medium"
-                    >
-                      {exp.period[lang]}
-                    </motion.span>
-                    <div className={cn(
-                      "absolute left-[9.5rem] w-2.5 h-2.5 rounded-full -translate-x-1/2",
-                      "z-10",
-                      exp.isCurrent 
-                        ? "bg-gray-900 dark:bg-gray-100" 
-                        : "bg-gray-200 dark:bg-gray-700"
-                    )} />
-                    <div className="flex gap-4 ml-4">
-                      <motion.span 
-                        key={`company-${lang}-${index}`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 + 0.1 }}
-                        className={cn(
-                          "font-medium",
-                          exp.isCurrent 
-                            ? "text-gray-900 dark:text-gray-100" 
-                            : "text-gray-400 dark:text-gray-500"
-                        )}
-                      >
-                        {exp.company[lang]}
-                      </motion.span>
-                      <motion.span 
-                        key={`role-${lang}-${index}`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 + 0.2 }}
-                        className={exp.isCurrent 
-                          ? "text-gray-900 dark:text-gray-100" 
-                          : "text-gray-400 dark:text-gray-500"}
-                      >
-                        {exp.role[lang]}
-                      </motion.span>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="flex items-center gap-12 relative pt-4">
-                  <span className="w-36 flex-shrink-0" />
-                  <div className="-ml-6">
-                    <motion.button
-                      onClick={scrollToProjects}
-                      className={cn(
-                        "p-2 rounded-full transition-colors cursor-pointer relative z-[11]",
-                        "bg-gray-100 hover:bg-gray-200",
-                        "dark:bg-gray-800 dark:hover:bg-gray-700"
-                      )}
-                      whileHover={{ y: 5 }}
-                      animate={{
-                        y: [0, 5, 0],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      <ChevronDownIcon className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-                    </motion.button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
+    </section>
   );
-}; 
+};

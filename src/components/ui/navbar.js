@@ -35,10 +35,10 @@ export const Navbar = ({ currentLang, onToggle, isDark, onThemeToggle }) => {
       "bg-white/80 dark:bg-transparent",
       "backdrop-blur-sm dark:backdrop-blur-none"
     )}>
-      <div className="flex items-center justify-between px-8 py-4">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between px-4 sm:px-8 py-3 sm:py-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div 
-            className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer hover:scale-110 transition-transform"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer hover:scale-110 transition-transform"
             onClick={showAvatarToast}
           >
             <img
@@ -47,13 +47,15 @@ export const Navbar = ({ currentLang, onToggle, isDark, onThemeToggle }) => {
               className="w-full h-full object-cover"
             />
           </div>
-          <span className="text-lg font-medium text-gray-800 dark:text-gray-200">
+          <span className="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-200">
             <TypeWriter text="Jason's Space" delay={150} />
           </span>
         </div>
         
-        <div className="flex items-center space-x-8">
-          <CoolModeButton lang={currentLang} />
+        <div className="flex items-center space-x-3 sm:space-x-8">
+          <div className="hidden sm:block">
+            <CoolModeButton lang={currentLang} />
+          </div>
           <ThemeSwitch isDark={isDark} onToggle={onThemeToggle} lang={currentLang} />
           <LanguageSwitch currentLang={currentLang} onToggle={onToggle} />
         </div>

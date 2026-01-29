@@ -146,49 +146,66 @@ const FloatingDockMobile = ({
   className,
 }) => {
   const [open, setOpen] = useState(false);
+  // 过滤掉分隔符
+  const filteredItems = items.filter(item => item.type !== 'separator');
+  
   return (
     <div className={cn(
-      "fixed bottom-12 right-8 z-50 block md:hidden",
+      "fixed bottom-6 right-4 z-50 block md:hidden",
       className
     )}>
       <AnimatePresence>
         {open && (
           <motion.div
             layoutId="nav"
-            className="absolute bottom-full right-0 mb-2 flex flex-col gap-2 items-end"
+            className="absolute bottom-full right-0 mb-3 flex flex-col gap-2 items-end"
           >
-            {items.map((item, idx) => (
+            {filteredItems.map((item, idx) => (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{
                   opacity: 0,
                   y: 10,
-                  transition: { delay: idx * 0.05 },
+                  scale: 0.8,
+                  transition: { delay: idx * 0.03 },
                 }}
-                transition={{ delay: (items.length - 1 - idx) * 0.05 }}
+                transition={{ delay: (filteredItems.length - 1 - idx) * 0.05 }}
+                className="flex items-center gap-2"
               >
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-300 bg-white/80 dark:bg-gray-800/80 px-2 py-1 rounded-lg backdrop-blur-sm">
+                  {item.title}
+                </span>
                 <a
                   href={item.href}
-                  onClick={item.onClick}
-                  className="h-10 w-10 rounded-full bg-white/60 dark:bg-gray-800/60 backdrop-blur-md shadow-lg border border-gray-200/20 dark:border-white/10 flex items-center justify-center hover:scale-110 transition-transform"
+                  onClick={(e) => {
+                    item.onClick?.(e);
+                    setOpen(false);
+                  }}
+                  className="h-10 w-10 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-lg border border-gray-200/20 dark:border-white/10 flex items-center justify-center active:scale-95 transition-transform"
                 >
-                  <div className="h-4 w-4 text-gray-600 dark:text-gray-300">{item.icon}</div>
+                  <div className="h-5 w-5 text-gray-600 dark:text-gray-300">{item.icon}</div>
                 </a>
               </motion.div>
             ))}
           </motion.div>
         )}
       </AnimatePresence>
-      <button
+      <motion.button
         onClick={() => setOpen(!open)}
-        className="h-12 w-12 rounded-full bg-white/60 dark:bg-gray-800/60 backdrop-blur-md shadow-lg border border-gray-200/20 dark:border-white/10 flex items-center justify-center hover:scale-105 transition-transform"
+        className="h-14 w-14 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-lg border border-gray-200/20 dark:border-white/10 flex items-center justify-center active:scale-95 transition-transform"
+        animate={{ rotate: open ? 45 : 0 }}
+        transition={{ duration: 0.2 }}
       >
-        <svg className="h-5 w-5 text-gray-600 dark:text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+        <svg className="h-6 w-6 text-gray-600 dark:text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          {open ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+          )}
         </svg>
-      </button>
+      </motion.button>
     </div>
   );
 };
