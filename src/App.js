@@ -31,6 +31,7 @@ import { FooterSection } from './components/sections/footer-section';
 import { getDockItems } from './config/dock-items';
 import { SplashScreen } from './components/ui/splash-screen';
 import ClickSpark from './components/ui/click-spark';
+import CircularGallery from './components/ui/CircularGallery';
 
 
 /**
@@ -108,6 +109,23 @@ function App() {
             />
             <div className="pt-16 sm:pt-24 relative z-20">
               <HeroSection lang={currentLang} t={t} />
+            </div>
+
+            {/* 圆形画廊展示 */}
+            <div className="w-full h-[400px] sm:h-[500px] md:h-[600px] relative my-8 sm:my-12">
+              <CircularGallery
+                items={[
+                  { image: '/images/DoitMac.png', text: 'Do it!' },
+                  { image: '/images/Tracck.png', text: 'Tracck!' },
+                  { image: '/images/Aha.png', text: 'Aha' },
+                  { image: '/images/评审工具.png', text: 'AI评审工具' },
+                ]}
+                bend={1}
+                textColor="#ffffff"
+                borderRadius={0.05}
+                scrollSpeed={2}
+                scrollEase={0.05}
+              />
             </div>
 
             <FooterSection 
