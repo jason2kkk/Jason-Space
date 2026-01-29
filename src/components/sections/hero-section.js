@@ -28,7 +28,7 @@ const AppStoreButton = ({ href, lang }) => {
         <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
       </svg>
       <div className="flex flex-col items-start leading-tight">
-        <span className="text-[10px] opacity-80">{lang === 'zh' ? '下载于' : 'Download on the'}</span>
+        <span className="text-[10px] opacity-80">{lang === 'zh' ? '前往' : 'Get it on'}</span>
         <span className="text-sm font-semibold">App Store</span>
       </div>
     </a>
@@ -36,7 +36,7 @@ const AppStoreButton = ({ href, lang }) => {
 };
 
 // 数据标签组件（类似编辑精选样式）
-const StatsBadge = ({ stats, lang }) => {
+const StatsBadge = ({ stats, lang, isDemo }) => {
   if (!stats || stats.length === 0) return null;
   
   return (
@@ -46,10 +46,17 @@ const StatsBadge = ({ stats, lang }) => {
           key={index}
           className={cn(
             "inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium",
-            "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30",
-            "text-blue-700 dark:text-blue-300",
-            "border border-blue-100 dark:border-blue-800/50",
-            "shadow-sm"
+            "shadow-sm",
+            // demo项目使用紫色系能力标签，已上线项目使用蓝色系数据标签
+            isDemo ? [
+              "bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-900/30 dark:to-violet-900/30",
+              "text-purple-700 dark:text-purple-300",
+              "border border-purple-100 dark:border-purple-800/50"
+            ] : [
+              "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30",
+              "text-blue-700 dark:text-blue-300",
+              "border border-blue-100 dark:border-blue-800/50"
+            ]
           )}
         >
           {stat.icon && <span className="mr-1">{stat.icon}</span>}
@@ -159,8 +166,8 @@ const ProjectCard = ({ project, lang, index }) => {
             <AppStoreButton href={project.appStoreUrl} lang={lang} />
           </div>
           
-          {/* 数据标签 */}
-          <StatsBadge stats={project.stats} lang={lang} />
+          {/* 数据/能力标签 */}
+          <StatsBadge stats={project.stats} lang={lang} isDemo={project.isDemo} />
         </div>
       </motion.div>
       
@@ -208,20 +215,31 @@ export const HeroSection = ({ lang, t }) => {
     {
       id: 'aha',
       title: { zh: 'Aha', en: 'Aha' },
-      subtitle: { zh: 'AI智能对话助手', en: 'AI Smart Chat Assistant' },
+      subtitle: { zh: '接入智谱GLM的AI查词工具', en: 'AI dictionary tool powered by Zhipu GLM' },
       image: '/images/Aha.png',
       bgGradient: 'from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-700',
       appStoreUrl: null,
-      stats: null
+      stats: [
+        { icon: '🤖', label: { zh: 'LLM', en: 'LLM' } },
+        { icon: '🔗', label: { zh: 'API集成', en: 'API Integration' } },
+        { icon: '✨', label: { zh: 'Prompt调优', en: 'Prompt Tuning' } },
+        { icon: '💡', label: { zh: '成本控制', en: 'Cost Control' } },
+      ],
+      isDemo: true
     },
     {
       id: 'review-tool',
-      title: { zh: '评审工具', en: 'Review Tool' },
-      subtitle: { zh: '产品评审效率工具', en: 'Product Review Efficiency Tool' },
+      title: { zh: 'AI原型用户体验评审工具', en: 'AI Prototype UX Review Tool' },
+      subtitle: { zh: '可上传原型图片，调用多个专家agent进行分析并模拟不同性格用户的体验路径，输出优化结论', en: 'Upload prototype images, invoke multiple expert agents for analysis and simulate user journeys with different personalities, output optimization conclusions' },
       image: '/images/评审工具.png',
       bgGradient: 'from-slate-50 to-gray-50 dark:from-slate-800 dark:to-gray-800',
       appStoreUrl: null,
-      stats: null
+      stats: [
+        { icon: '🤖', label: { zh: 'Agent', en: 'Agent' } },
+        { icon: '🎯', label: { zh: '真实业务场景', en: 'Real Business Scenario' } },
+        { icon: '✨', label: { zh: 'Prompt调优', en: 'Prompt Tuning' } },
+      ],
+      isDemo: true
     }
   ];
 
