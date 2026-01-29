@@ -1,5 +1,4 @@
 import React from 'react';
-import { LanguageSwitch } from './language-switch';
 import { cn } from '../../lib/utils';
 import { CoolModeButton } from './cool-mode-button';
 import { TypeWriter } from './type-writer';
@@ -7,7 +6,7 @@ import ReactDOM from 'react-dom/client';
 import { Toast } from './toast';
 import { ThemeSwitch } from './theme-switch';
 
-export const Navbar = ({ currentLang, onToggle, isDark, onThemeToggle }) => {
+export const Navbar = ({ currentLang, isDark, onThemeToggle }) => {
   const showAvatarToast = () => {
     const toast = document.createElement('div');
     toast.id = 'toast';
@@ -23,7 +22,7 @@ export const Navbar = ({ currentLang, onToggle, isDark, onThemeToggle }) => {
               document.body.removeChild(toast);
             }
             root.unmount();
-          }, 800); // 从300ms增加到800ms，确保动画完全结束
+          }, 800);
         }} 
       />
     );
@@ -36,6 +35,7 @@ export const Navbar = ({ currentLang, onToggle, isDark, onThemeToggle }) => {
       "backdrop-blur-sm dark:backdrop-blur-none"
     )}>
       <div className="flex items-center justify-between px-4 sm:px-8 py-3 sm:py-4">
+        {/* 左侧：头像和标题 */}
         <div className="flex items-center gap-2 sm:gap-3">
           <div 
             className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer hover:scale-110 transition-transform"
@@ -47,17 +47,19 @@ export const Navbar = ({ currentLang, onToggle, isDark, onThemeToggle }) => {
               className="w-full h-full object-cover"
             />
           </div>
-          <span className="text-base sm:text-lg font-medium text-gray-800 dark:text-gray-200">
+          <span className="text-sm sm:text-base md:text-lg font-medium text-gray-800 dark:text-gray-200">
             <TypeWriter text="Jason's Space" delay={150} />
           </span>
         </div>
         
-        <div className="flex items-center space-x-3 sm:space-x-8">
-          <div className="hidden sm:block">
+        {/* 右侧：操作按钮 */}
+        <div className="flex items-center space-x-2 sm:space-x-4 md:space-x-8">
+          {/* 桌面端显示 Cool Mode 按钮 */}
+          <div className="hidden md:block">
             <CoolModeButton lang={currentLang} />
           </div>
+          {/* 主题切换按钮 - 移动端使用更小的尺寸 */}
           <ThemeSwitch isDark={isDark} onToggle={onThemeToggle} lang={currentLang} />
-          <LanguageSwitch currentLang={currentLang} onToggle={onToggle} />
         </div>
       </div>
     </div>

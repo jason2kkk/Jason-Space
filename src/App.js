@@ -40,7 +40,7 @@ import ClickSpark from './components/ui/click-spark';
 function App() {
   // 状态管理
   const [showSplash, setShowSplash] = useState(true);
-  const [currentLang, setCurrentLang] = useState('zh');
+  const currentLang = 'zh'; // 固定使用中文
   const [isDark, setIsDark] = useState(false);
   const [themeChanging, setThemeChanging] = useState(false); // 新增：主题切换状态
   const t = translations[currentLang]; // 获取当前语言的翻译文本
@@ -77,14 +77,6 @@ function App() {
     // }, 1500);
   };
 
-  /**
-   * 切换语言
-   * 在中文和英文之间切换
-   */
-  const toggleLanguage = () => {
-    analytics.trackNavClick('language_toggle'); // 记录语言切换事件
-    setCurrentLang(prev => prev === 'zh' ? 'en' : 'zh');
-  };
 
   useEffect(() => {
     // 初始化埋点工具
@@ -111,7 +103,6 @@ function App() {
           <>
             <Navbar 
               currentLang={currentLang} 
-              onToggle={toggleLanguage}
               isDark={isDark}
               onThemeToggle={handleThemeToggle}
             />

@@ -115,9 +115,9 @@ export const SplashScreen = ({ onComplete }) => {
             className="relative flex flex-col items-center"
           >
             {/* Welcome 标题 */}
-            <div className="mb-16 relative z-20">
+            <div className="mb-8 sm:mb-16 relative z-20">
               <span className={cn(
-                "text-[120px] leading-none tracking-tight",
+                "text-[48px] sm:text-[80px] md:text-[120px] leading-none tracking-tight",
                 "font-extrabold uppercase",
                 "bg-clip-text text-transparent",
                 "bg-gradient-to-br from-gray-900/95 via-gray-800/90 to-transparent",
@@ -134,11 +134,11 @@ export const SplashScreen = ({ onComplete }) => {
             </div>
 
             {/* Logo */}
-            <div className="relative z-20 mb-6">
+            <div className="relative z-20 mb-4 sm:mb-6">
               <img 
                 src="/assets/avatar.jpg" 
                 alt="Logo"
-                className="w-24 h-24 rounded-full ring-4 ring-black/5 dark:ring-white/10"
+                className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full ring-4 ring-black/5 dark:ring-white/10"
               />
               {/* 光环效果 */}
               <motion.div
@@ -152,7 +152,7 @@ export const SplashScreen = ({ onComplete }) => {
                     ease: "easeInOut"
                   }
                 }}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 z-10"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 z-10"
               >
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-400 to-purple-400 blur-xl dark:opacity-60" />
               </motion.div>
@@ -160,7 +160,7 @@ export const SplashScreen = ({ onComplete }) => {
 
             {/* 标题打字效果 */}
             <div className="relative z-20">
-              <span className="text-2xl font-bold text-gray-800 dark:text-gray-100 tracking-wide">
+              <span className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 tracking-wide">
                 {text}
                 <motion.span
                   animate={{ opacity: [0, 1, 0] }}

@@ -12,7 +12,8 @@ export const ThemeSwitch = ({ isDark, onToggle, lang }) => {
       shimmerSize="0.1em"
       shimmerDuration="3s"
       className={cn(
-        "flex items-center gap-2 px-4 py-2",
+        "flex items-center gap-2",
+        "px-3 py-2 sm:px-4 sm:py-2",
         "text-sm font-medium",
         "text-gray-700 dark:text-gray-200",
         "border-gray-200/20 dark:border-gray-700/30",
@@ -20,7 +21,10 @@ export const ThemeSwitch = ({ isDark, onToggle, lang }) => {
       )}
     >
       {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-      {isDark ? (lang === 'zh' ? '亮色模式' : 'Light Mode') : (lang === 'zh' ? '暗夜模式' : 'Dark Mode')}
+      {/* 移动端只显示图标，桌面端显示文字 */}
+      <span className="hidden sm:inline">
+        {isDark ? (lang === 'zh' ? '亮色模式' : 'Light Mode') : (lang === 'zh' ? '暗夜模式' : 'Dark Mode')}
+      </span>
     </ShimmerButton>
   );
 }; 
