@@ -568,7 +568,7 @@ export const HeroSection = ({ lang, t }) => {
       appStoreUrl: 'https://apps.apple.com/cn/app/do-it/id6743646015',
       rating: '200+',
       // 累计数据
-      revenue: '$4,000+',
+      revenue: '4,000+美元',
       downloads: '13,000+',
       // 排名
       rankings: [
@@ -594,7 +594,7 @@ export const HeroSection = ({ lang, t }) => {
       appStoreUrl: 'https://apps.apple.com/cn/app/tracck/id6743366923',
       rating: '30+',
       // 累计数据
-      revenue: '$2,000+',
+      revenue: '2,000+美元',
       downloads: '2,000+',
     },
     {
