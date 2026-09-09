@@ -21,17 +21,12 @@
 import React from 'react';
 import './App.css';
 
-function BlankPage({ page }) {
-  return <main className="blank-page" data-page={page} aria-label={page} />;
-}
-
 function App() {
-  const path = window.location.pathname.replace(/\/+$/, '') || '/';
-
-  return path === '/page-2' ? (
-    <BlankPage page="page-2" />
-  ) : (
-    <BlankPage page="page-1" />
+  return (
+    <main className="blank-pages">
+      <section className="blank-page" data-page="page-1" aria-label="page-1" />
+      <section className="blank-page" data-page="page-2" aria-label="page-2" />
+    </main>
   );
 }
 
