@@ -3,9 +3,9 @@
  * @description 首屏英雄区块组件，展示个人主要信息和独立开发作品
  */
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BadgeCheck, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion';
+import { AtSign, Battery, BatteryCharging, BatteryFull, BatteryLow, BatteryMedium, Bluetooth, Folder, Headphones, Mail, MapPin, Phone, UserRound, Wifi, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 // 数据标签组件（类似编辑精选样式）
@@ -58,46 +58,6 @@ const StatsBadge = ({ stats, lang, isDemo }) => {
         </span>
       ))}
     </div>
-  );
-};
-
-// 小红书卡片组件
-const XiaohongshuCard = ({ name, followers, href, lang }) => {
-  return (
-    <motion.a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className={cn(
-        "flex-1 min-w-0 flex items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl",
-        "bg-zinc-50 dark:bg-zinc-800/50",
-        "border border-zinc-200 dark:border-zinc-700/50",
-        "hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-600 transition-all duration-200"
-      )}
-    >
-      {/* 信息 */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm sm:text-base font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-          {name}
-        </p>
-        <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-          {lang === 'zh' ? '粉丝量：' : 'Followers: '}{followers}
-        </p>
-      </div>
-      
-      {/* 跳转按钮 */}
-      <div className={cn(
-        "px-3 py-1.5 rounded-full text-xs font-medium shrink-0",
-        "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900",
-        "hover:opacity-80 transition-opacity"
-      )}>
-        {lang === 'zh' ? '主页' : 'Profile'}
-      </div>
-    </motion.a>
   );
 };
 
@@ -289,6 +249,8 @@ const ScreenshotCarousel = ({ screenshots, isLandscape, lang, onImageClick }) =>
 };
 
 // 项目卡片组件 - 参考 App Store 风格布局
+// Kept as a fallback for the previous card-based presentation.
+// eslint-disable-next-line no-unused-vars
 const ProjectCard = ({ project, lang, index }) => {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState(project.image);
@@ -547,213 +509,1042 @@ const ProjectCard = ({ project, lang, index }) => {
   );
 };
 
-export const HeroSection = ({ lang, t }) => {
-  // 项目数据 - 顺序：DoitMac、Tracck、Aha、评审工具
-  // isLandscape: true 表示 Mac 横向截图，false 表示 iOS 竖向截图
-  // screenshots: 数组表示有多张宣传图，支持滑动；不设置则使用单张 image
-  const projects = [
-    {
-      id: 'doit-mac',
-      title: { zh: 'Do it!', en: 'Do it!' },
-      subtitle: { zh: '一款简单漂亮的任务规划App', en: 'A simple and beautiful task planning app' },
-      image: '/images/doitmac/简体1.png',
-      icon: '/images/Doit图标.png',
-      // Mac 版本 - 横向截图
-      isLandscape: true,
-      screenshots: [
-        '/images/doitmac/简体1.png',
-        '/images/doitmac/英文2 1.png',
-        '/images/doitmac/英文3 1.png',
-      ],
-      appStoreUrl: 'https://apps.apple.com/cn/app/do-it/id6743646015',
-      rating: '200+',
-      // 累计数据
-      revenue: '4,000+美元',
-      downloads: '13,000+',
-      // 排名
-      rankings: [
-        { title: { zh: 'App Store效率榜', en: 'App Store Productivity' }, value: '#48' },
-        { title: { zh: '即刻产品发布会', en: 'Jike Product Launch' }, value: 'TOP1' },
-      ],
-    },
-    {
-      id: 'tracck',
-      title: { zh: 'Tracck!', en: 'Tracck!' },
-      subtitle: { zh: '一款博主商单管理、排期、收入统计App', en: 'A creator business management app' },
-      image: '/images/tracck/图1.jpg',
-      icon: '/images/tracck图标.png',
-      // iOS 版本 - 竖向截图
-      isLandscape: false,
-      screenshots: [
-        '/images/tracck/图1.jpg',
-        '/images/tracck/图2.jpg',
-        '/images/tracck/图3.jpg',
-        '/images/tracck/图4.jpg',
-        '/images/tracck/图5.jpg',
-      ],
-      appStoreUrl: 'https://apps.apple.com/cn/app/tracck/id6743366923',
-      rating: '30+',
-      // 累计数据
-      revenue: '2,000+美元',
-      downloads: '2,000+',
-    },
-    {
-      id: 'aha',
-      title: { zh: 'Aha', en: 'Aha' },
-      subtitle: { zh: 'AI专业领域查词工具，解决专业领域的"术语查询与复盘"需求', en: 'AI professional dictionary tool for terminology lookup and review' },
-      image: '/images/Aha.png',
-      icon: '/images/aha图标.png',
-      // 单张图片，不需要轮播
-      appStoreUrl: null,
-      stats: [
-        { icon: '🤖', label: { zh: 'LLM', en: 'LLM' } },
-        { icon: '✨', label: { zh: 'Prompt工程', en: 'Prompt Engineering' } },
-        { icon: '📚', label: { zh: 'RAG', en: 'RAG' } },
-        { icon: '💡', label: { zh: '成本控制', en: 'Cost Control' } },
-        { icon: '🔗', label: { zh: '大模型API集成', en: 'LLM API Integration' } },
-      ],
-      isDemo: true
-    },
-    {
-      id: 'review-tool',
-      title: { zh: 'AI原型用户体验评审工具', en: 'AI Prototype UX Review Tool' },
-      subtitle: { zh: '可上传原型图片，调用多个专家agent进行分析并模拟不同性格用户的体验路径，输出优化结论', en: 'Upload prototype images, invoke multiple expert agents for analysis and simulate user journeys with different personalities, output optimization conclusions' },
-      image: '/images/评审工具/评审工具1.png',
-      isLandscape: true,
-      screenshots: [
-        '/images/评审工具/评审工具1.png',
-        '/images/评审工具/评审工具2.png',
-        '/images/评审工具/评审工具3.png',
-      ],
-      appStoreUrl: null,
-      stats: [
-        { icon: '🤖', label: { zh: '多专家Agent协同', en: 'Multi-Agent Collaboration' } },
-        { icon: '✨', label: { zh: 'Prompt工程', en: 'Prompt Engineering' } },
-        { icon: '🎯', label: { zh: '真实业务场景', en: 'Real Business Scenario' } },
-      ],
-      isDemo: true
-    }
-  ];
+const CodewayStoreButton = ({ store }) => (
+  <a
+    href={store.url}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="flex h-12 min-w-[150px] flex-1 items-center justify-center gap-3 rounded-full border border-white/30 px-3 text-white transition-colors hover:bg-white/10"
+  >
+    <img src={store.icon} alt="" className={store.name === 'App Store' ? 'h-[22px] w-[18px]' : 'h-6 w-6'} />
+    <span className="flex flex-col items-start leading-none">
+      <span className="mb-1 text-[10px] font-normal">{store.eyebrow}</span>
+      <span className="text-[17px] font-semibold">{store.name}</span>
+    </span>
+  </a>
+);
+
+const personalRankings = [
+  { title: 'App Store效率榜', value: '#48' },
+  { title: '即刻产品发布会', value: 'TOP1' },
+];
+
+const PersonalRankings = () => (
+  <div className="flex min-h-[124px] items-center justify-center gap-1 pb-7">
+    {personalRankings.map((ranking) => (
+      <div key={ranking.title} className="flex min-w-0 flex-1 items-center justify-center">
+        <img src="/images/left.png" alt="" className="h-[clamp(48px,4vw,68px)] w-[clamp(24px,2vw,34px)] shrink-0 object-contain" />
+        <div className="min-w-0 px-1 text-center">
+          <p className="whitespace-nowrap text-[clamp(10px,0.85vw,14px)] leading-tight text-white/85">{ranking.title}</p>
+          <p className="mt-1 text-[clamp(26px,2vw,36px)] font-bold leading-none text-white">{ranking.value}</p>
+        </div>
+        <img src="/images/right.png" alt="" className="h-[clamp(48px,4vw,68px)] w-[clamp(24px,2vw,34px)] shrink-0 object-contain" />
+      </div>
+    ))}
+  </div>
+);
+
+const CodewayPhone = ({ projects, screenY, compact = false }) => (
+  <div
+    className={cn(
+      "aspect-[1120/2280] shrink-0 overflow-hidden",
+      compact
+        ? "relative mx-auto h-[min(54svh,500px)] min-h-[320px]"
+        : "absolute bottom-0 left-1/2 h-[min(88svh,900px)] min-h-[480px] -translate-x-1/2"
+    )}
+  >
+    {/* Keep a real app screen visible while the next lazy image is decoding. */}
+    <img
+      src={projects[0].screenOverlay}
+      alt=""
+      className="pointer-events-none absolute inset-0 z-10 h-full w-full object-contain"
+      loading="eager"
+    />
+    <motion.div
+      className="pointer-events-none absolute inset-0 z-20 flex h-full w-full flex-col will-change-transform"
+      style={screenY ? { y: screenY } : undefined}
+    >
+      {projects.map((product) => (
+        <img
+          key={product.id}
+          src={product.screenOverlay}
+          alt={`${product.title} app screen`}
+          className="h-full min-h-full w-full shrink-0 object-contain"
+          loading="eager"
+        />
+      ))}
+    </motion.div>
+    <img
+      src="/images/codeway-reference/phone-frame.png"
+      alt=""
+      className="pointer-events-none absolute inset-0 z-30 h-full w-full object-contain"
+      loading="eager"
+    />
+  </div>
+);
+
+const CodewayProductInfo = ({ product, compact = false }) => (
+  <div className={cn("text-white", compact ? "w-full" : "max-w-[390px]")}>
+    <div className={cn("flex items-center", compact ? "gap-3" : "gap-5")}>
+      <img
+        src={product.icon}
+        alt=""
+        className={cn("shrink-0 object-cover", compact ? "h-14 w-14 rounded-[15px]" : "h-[84px] w-[84px] rounded-[22px]")}
+      />
+      <div className="min-w-0">
+        <h3 className={cn("font-semibold", compact ? "text-[28px] leading-8" : "text-[clamp(32px,2.8vw,46px)] leading-none")}>
+          {product.title}
+        </h3>
+        <p className={cn("font-normal text-white/95", compact ? "mt-1 text-[15px]" : "mt-3 text-[21px]")}>
+          {product.category}
+        </p>
+      </div>
+    </div>
+
+    <p className={cn("text-white/85", compact ? "mt-4 line-clamp-3 text-[13px] leading-[1.65]" : "mt-10 text-[16px] leading-[1.8]")}>
+      {compact ? product.mobileDescription : product.description}
+    </p>
+
+    <div className={cn("flex flex-wrap", compact ? "mt-4 gap-2" : "mt-8 gap-3")}>
+      {product.stores.map((store) => <CodewayStoreButton key={store.name} store={store} />)}
+    </div>
+  </div>
+);
+
+const CodewayMetrics = ({ product, compact = false }) => {
+  if (compact) {
+    return (
+      <div
+        className="mt-4 grid border-y border-white/20 text-center text-white"
+        style={{ gridTemplateColumns: `repeat(${product.metrics.length}, minmax(0, 1fr))` }}
+      >
+        {product.metrics.map((metric) => (
+          <div key={metric.value} className="py-3">
+            <p className="text-xl font-semibold">{metric.value}</p>
+            {metric.rating ? (
+              <img src={product.rating} alt="Rating" className="mx-auto mt-1 h-3 w-auto" />
+            ) : (
+              <p className="mt-1 text-[9px] uppercase text-white/70">{metric.label}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <section className="relative w-full">
-      <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 pt-4 sm:pt-8">
-        {/* 个人信息头部 */}
+    <div className="ml-auto w-full max-w-[360px] text-center text-white">
+      <PersonalRankings />
+      {product.metrics.map((metric) => (
+        <div key={metric.value} className="flex min-h-[124px] flex-col items-center justify-center border-t border-white/25 py-6">
+          <p className="text-[clamp(34px,3.2vw,48px)] font-semibold leading-none">{metric.value}</p>
+          {metric.rating ? (
+            <img src={product.rating} alt="Rating" className="mt-3 h-[18px] w-auto" />
+          ) : (
+            <p className="mt-3 text-[12px] font-medium uppercase text-white/85">{metric.label}</p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const ScrollProjectsShowcase = ({ projects }) => {
+  const sectionRef = useRef(null);
+  const snapTimerRef = useRef(null);
+  const snapUnlockTimerRef = useRef(null);
+  const isSnappingRef = useRef(false);
+  const snapTargetRef = useRef(null);
+  const shouldReduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end end'],
+  });
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 130,
+    damping: 28,
+    mass: 0.22,
+    restDelta: 0.0001,
+  });
+  const renderedProgress = shouldReduceMotion ? scrollYProgress : smoothProgress;
+  const trackY = useTransform(renderedProgress, [0, 1], ['0%', `${-(projects.length - 1) * 100}%`]);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || projects.length < 2) return undefined;
+
+    const clearSnapTimer = () => {
+      if (snapTimerRef.current) {
+        window.clearTimeout(snapTimerRef.current);
+        snapTimerRef.current = null;
+      }
+    };
+
+    const clearSnapUnlockTimer = () => {
+      if (snapUnlockTimerRef.current) {
+        window.clearTimeout(snapUnlockTimerRef.current);
+        snapUnlockTimerRef.current = null;
+      }
+    };
+
+    const unlockSnap = () => {
+      isSnappingRef.current = false;
+      snapTargetRef.current = null;
+      clearSnapUnlockTimer();
+    };
+
+    const getSectionMetrics = () => {
+      const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+      const maxOffset = Math.max(section.offsetHeight - window.innerHeight, 0);
+      const offset = window.scrollY - sectionTop;
+
+      return { sectionTop, maxOffset, offset };
+    };
+
+    const snapToNearestProject = () => {
+      snapTimerRef.current = null;
+      if (isSnappingRef.current) return;
+
+      const { sectionTop, maxOffset, offset } = getSectionMetrics();
+      const boundaryTolerance = Math.max(16, window.innerHeight * 0.045);
+
+      // Leave scrolling outside the sticky showcase untouched.
+      if (maxOffset <= 0 || offset < -boundaryTolerance || offset > maxOffset + boundaryTolerance) return;
+
+      const progress = Math.min(1, Math.max(0, offset / maxOffset));
+      const nearestIndex = Math.round(progress * (projects.length - 1));
+      const projectStep = maxOffset / (projects.length - 1);
+      const targetY = sectionTop + nearestIndex * projectStep;
+
+      if (Math.abs(window.scrollY - targetY) < 3) return;
+
+      isSnappingRef.current = true;
+      snapTargetRef.current = targetY;
+      window.scrollTo({
+        top: targetY,
+        behavior: shouldReduceMotion ? 'auto' : 'smooth',
+      });
+
+      // scrollend is not available in every browser, so keep a bounded fallback.
+      snapUnlockTimerRef.current = window.setTimeout(unlockSnap, shouldReduceMotion ? 100 : 900);
+    };
+
+    const handleScrollEnd = () => {
+      if (!isSnappingRef.current) return;
+      const targetY = snapTargetRef.current;
+      if (targetY === null || Math.abs(window.scrollY - targetY) < 4) unlockSnap();
+    };
+
+    const handleScroll = () => {
+      if (isSnappingRef.current) return;
+      clearSnapTimer();
+      snapTimerRef.current = window.setTimeout(snapToNearestProject, 150);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scrollend', handleScrollEnd);
+
+    return () => {
+      clearSnapTimer();
+      clearSnapUnlockTimer();
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scrollend', handleScrollEnd);
+      unlockSnap();
+    };
+  }, [projects.length, shouldReduceMotion]);
+
+  return (
+    <section
+      id="projects"
+      ref={sectionRef}
+      className="relative w-full"
+      style={{ height: `${projects.length * 100}svh` }}
+    >
+      <div className="sticky top-0 h-[100svh] min-h-[640px] overflow-hidden bg-[#0f5136]">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          className="absolute inset-0 z-0 flex h-full flex-col will-change-transform"
+          style={{ y: trackY }}
+        >
+          {projects.map((product) => (
+            <section
+              key={product.id}
+              aria-label={product.title}
+              className="h-full min-h-full w-full shrink-0"
+              style={{ backgroundColor: product.background }}
+            >
+              <div className="relative z-10 mx-auto hidden h-full w-full max-w-[1440px] grid-cols-[minmax(280px,1fr)_minmax(240px,0.78fr)_minmax(220px,1fr)] items-center gap-[clamp(34px,4vw,70px)] px-[clamp(64px,8vw,132px)] lg:grid">
+                <CodewayProductInfo product={product} />
+                <div aria-hidden="true" />
+                <CodewayMetrics product={product} />
+              </div>
+
+              <div className="flex h-full flex-col overflow-hidden px-5 pb-5 pt-6 sm:px-10 lg:hidden">
+                <div className="flex min-h-0 flex-1 items-center justify-center">
+                  <CodewayPhone projects={[product]} compact />
+                </div>
+                <div className="mx-auto w-full max-w-[560px] shrink-0">
+                  <CodewayProductInfo product={product} compact />
+                  <CodewayMetrics product={product} compact />
+                </div>
+              </div>
+            </section>
+          ))}
+        </motion.div>
+
+        <div className="pointer-events-none absolute inset-0 z-[5] hidden lg:block">
+          <CodewayPhone projects={projects} screenY={trackY} />
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const deskEntrance = {
+  initial: { opacity: 0, scale: 0.96 },
+  animate: { opacity: 1, scale: 1 },
+  transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] },
+};
+
+let stickerForgeLoader;
+
+const emptyForgeOptions = {};
+
+const sharedStickerForgeOptions = {
+  outline: { width: 16, color: '#f2eee8' },
+  edge: { width: 2.3, strength: 0.65 },
+  shadow: { color: '#191823', opacity: 0.2, blur: 20, distance: 14, angle: 42 },
+  lighting: {
+    direction: { x: -0.38, y: 0.52, z: 0.76 },
+    intensity: 0.76,
+    ambient: 0.34,
+    softness: 0.62,
+  },
+  peel: {
+    radius: 0.12,
+    stiffness: 0.72,
+    grabWidth: 22,
+    maxAngle: 3.55,
+    release: 'snap',
+  },
+  sound: { enabled: true, volume: 0.68 },
+  back: { color: '#eeeae4', gloss: 0.62, roughness: 0.38 },
+  material: {
+    type: 'original',
+    intensity: 0.8,
+    scale: 1,
+    holographicGrain: 0.72,
+    seed: 0.37,
+    holographicColors: ['#f2a7c5', '#8edfd5', '#9db4ea'],
+  },
+  wind: 0.25,
+  quality: 'high',
+};
+
+const macBookStickerForgeOptions = {
+  ...sharedStickerForgeOptions,
+  edge: { ...sharedStickerForgeOptions.edge, width: 1.4, strength: 0.38 },
+  shadow: { ...sharedStickerForgeOptions.shadow, opacity: 0.1, blur: 5, distance: 2 },
+};
+
+const headphoneStickerForgeOptions = {
+  ...sharedStickerForgeOptions,
+  outline: { ...sharedStickerForgeOptions.outline, width: 15, color: '#eae5dd' },
+  edge: { ...sharedStickerForgeOptions.edge, width: 2.2, strength: 0.6 },
+  shadow: { ...sharedStickerForgeOptions.shadow, opacity: 0.18, blur: 18, distance: 12 },
+  lighting: { ...sharedStickerForgeOptions.lighting, intensity: 0.72, ambient: 0.32, softness: 0.66 },
+  back: { ...sharedStickerForgeOptions.back, color: '#e7e2da', gloss: 0.56, roughness: 0.44 },
+  material: { ...sharedStickerForgeOptions.material, intensity: 0.74 },
+};
+
+const deskStickerSurfaceFilter = 'brightness(0.98) saturate(0.96) contrast(0.99) sepia(0.01)';
+const headphoneStickerSurfaceFilter = 'brightness(0.93) saturate(0.88) contrast(0.98) sepia(0.03)';
+
+const loadStickerForge = () => {
+  if (window.StickerForge) return Promise.resolve(window.StickerForge);
+  if (stickerForgeLoader) return stickerForgeLoader;
+
+  stickerForgeLoader = new Promise((resolve, reject) => {
+    const existingScript = document.querySelector('script[data-sticker-forge]');
+    const script = existingScript || document.createElement('script');
+
+    const handleLoad = () => {
+      if (window.StickerForge) resolve(window.StickerForge);
+      else reject(new Error('Sticker Forge loaded without exposing its API.'));
+    };
+
+    script.addEventListener('load', handleLoad, { once: true });
+    script.addEventListener('error', () => reject(new Error('Sticker Forge failed to load.')), { once: true });
+
+    if (!existingScript) {
+      script.src = '/vendor/sticker-forge/sticker-forge.iife.js';
+      script.async = true;
+      script.dataset.stickerForge = 'true';
+      document.head.appendChild(script);
+    }
+  });
+
+  return stickerForgeLoader;
+};
+
+const ForgeSticker = ({
+  src,
+  alt,
+  className,
+  delay = 0.45,
+  tilt = 0,
+  forgeOptions = emptyForgeOptions,
+  displayScale,
+  displayAspect,
+  renderScale = 2,
+  zIndex = 30,
+  surfaceFilter = 'none',
+}) => {
+  const frameRef = useRef(null);
+  const mountRef = useRef(null);
+  const peelResetTimerRef = useRef(null);
+  const [isReady, setIsReady] = useState(false);
+  const [fallbackSrc, setFallbackSrc] = useState(null);
+  const [isPeeling, setIsPeeling] = useState(false);
+
+  useEffect(() => {
+    let disposed = false;
+    const image = new Image();
+    setFallbackSrc(null);
+
+    image.onload = () => {
+      if (!disposed) setFallbackSrc(src);
+    };
+    image.onerror = () => {
+      if (!disposed) setFallbackSrc(null);
+    };
+    image.src = src;
+
+    return () => {
+      disposed = true;
+      image.onload = null;
+      image.onerror = null;
+    };
+  }, [src]);
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return undefined;
+
+    const handlePeelStart = () => {
+      window.clearTimeout(peelResetTimerRef.current);
+      setIsPeeling(true);
+    };
+    const handlePeelEnd = () => {
+      window.clearTimeout(peelResetTimerRef.current);
+      peelResetTimerRef.current = window.setTimeout(() => setIsPeeling(false), 950);
+    };
+
+    mount.addEventListener('peelstart', handlePeelStart);
+    mount.addEventListener('peelend', handlePeelEnd);
+
+    return () => {
+      window.clearTimeout(peelResetTimerRef.current);
+      mount.removeEventListener('peelstart', handlePeelStart);
+      mount.removeEventListener('peelend', handlePeelEnd);
+    };
+  }, []);
+
+  useEffect(() => {
+    let disposed = false;
+    let instance;
+    let resizeObserver;
+    const frame = frameRef.current;
+    const mount = mountRef.current;
+    const getDisplayOptions = () => {
+      if (!frame || !displayScale || !displayAspect) return {};
+      // The larger transparent mount gives the peeled mesh room to travel without clipping.
+      const width = Math.max(1, frame.clientWidth * displayScale);
+      return { display: { width, height: width / displayAspect } };
+    };
+
+    loadStickerForge()
+      .then((api) => api.createSticker(mount, {
+        source: { type: 'image', src, name: alt },
+        outline: { width: 2, color: '#f8f8f6', ...forgeOptions.outline },
+        edge: { width: 1.4, strength: 0.5, ...forgeOptions.edge },
+        shadow: {
+          color: '#050505',
+          opacity: 0.25,
+          blur: 9,
+          distance: 4,
+          ...forgeOptions.shadow,
+        },
+        lighting: {
+          direction: { x: -0.42, y: 0.56, z: 0.72 },
+          intensity: 0.72,
+          ambient: 0.42,
+          softness: 0.72,
+          ...forgeOptions.lighting,
+        },
+        peel: {
+          radius: 0.1,
+          stiffness: 0.68,
+          grabWidth: 16,
+          maxAngle: 3.35,
+          surfaceShadow: true,
+          release: 'reset',
+          ...forgeOptions.peel,
+          residue: false,
+        },
+        back: { color: '#f1f0eb', gloss: 0.42, roughness: 0.58, ...forgeOptions.back },
+        material: { type: 'original', intensity: 0, ...forgeOptions.material },
+        sound: { enabled: false, volume: 0, ...forgeOptions.sound },
+        tilt: forgeOptions.tilt ?? tilt,
+        wind: forgeOptions.wind ?? 0.08,
+        quality: forgeOptions.quality ?? 'medium',
+        ...getDisplayOptions(),
+      }))
+      .then((createdSticker) => {
+        instance = createdSticker;
+        if (disposed) {
+          createdSticker.destroy();
+          return;
+        }
+        createdSticker.setRenderScale(renderScale);
+        mount.querySelector('canvas')?.style.setProperty('outline', 'none');
+        if (frame && displayScale && displayAspect && typeof ResizeObserver !== 'undefined') {
+          resizeObserver = new ResizeObserver(() => {
+            createdSticker.setOptions(getDisplayOptions());
+            createdSticker.resize();
+          });
+          resizeObserver.observe(frame);
+        }
+        setIsReady(true);
+      })
+      .catch((error) => {
+        if (!disposed) console.error(error);
+      });
+
+    return () => {
+      disposed = true;
+      resizeObserver?.disconnect();
+      instance?.destroy();
+    };
+  }, [alt, displayAspect, displayScale, forgeOptions, renderScale, src, tilt]);
+
+  const mountScale = 2.2;
+  const restingPadding = 0.16;
+  const restingWidth = (displayScale || 0.58) + restingPadding;
+  const restingHeight = (displayAspect ? (displayScale || 0.58) / displayAspect : (displayScale || 0.58)) + restingPadding;
+  const restingInsetX = Math.max(0, (1 - Math.min(mountScale, restingWidth) / mountScale) * 50);
+  const restingInsetY = Math.max(0, (1 - Math.min(mountScale, restingHeight) / mountScale) * 50);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
+      ref={frameRef}
+      className={`pointer-events-auto absolute z-30 aspect-square overflow-visible ${className}`}
+      style={{ zIndex }}
+      aria-label={alt}
+    >
+      {fallbackSrc && (
+        <img
+          src={fallbackSrc}
+          alt=""
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-0 m-auto h-auto select-none object-contain transition-opacity duration-150 ${isReady ? 'opacity-0' : 'opacity-100'}`}
+          style={{
+            width: displayScale ? `${displayScale * 100}%` : '58%',
+            filter: surfaceFilter,
+          }}
+          draggable={false}
+        />
+      )}
+      <div
+        ref={mountRef}
+        className={`absolute inset-[-60%] overflow-visible transition-opacity duration-150 [&_canvas]:outline-none ${isReady ? 'opacity-100' : 'opacity-0'}`}
+        style={{
+          clipPath: isPeeling ? 'inset(0)' : `inset(${restingInsetY}% ${restingInsetX}%)`,
+          filter: surfaceFilter,
+        }}
+      />
+    </motion.div>
+  );
+};
+
+const MacBookLayer = ({ isFocused, onFocus, onBlur }) => (
+  <div
+    className="pointer-events-none absolute left-1/2 top-[23.5%] z-10 h-[27%] w-[64vw] -translate-x-1/2 -translate-y-1/2 sm:top-[27%] sm:h-[45%] sm:w-[58vw] lg:left-[49.3%] lg:top-[32%] lg:h-[56%] lg:w-[535px]"
+    style={{ zIndex: isFocused ? 24 : 10 }}
+  >
+    <motion.div
+      className="pointer-events-auto relative mx-auto h-full aspect-[833/801] max-w-full"
+      onHoverStart={onFocus}
+      onHoverEnd={onBlur}
+      whileHover={{
+        y: -4,
+        scale: 1.04,
+        filter: 'brightness(1.055) saturate(1.02) drop-shadow(0 14px 20px rgba(0,0,0,0.3))',
+        transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+      }}
+      style={{ transformOrigin: '50% 52%' }}
+    >
+      <motion.img
+        src="/images/desk/processed/macbook-clean.png"
+        alt="MacBook viewed from above"
+        {...deskEntrance}
+        transition={{ ...deskEntrance.transition, delay: 0.08 }}
+        className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
+        draggable={false}
+      />
+      <ForgeSticker
+        src="/images/desk/stickers/hello-workbench-original.png"
+        alt="Peelable hello sticker"
+        delay={0.52}
+        tilt={-3}
+        displayScale={0.82}
+        displayAspect={1}
+        forgeOptions={macBookStickerForgeOptions}
+        surfaceFilter={deskStickerSurfaceFilter}
+        className="left-[-3%] top-[62%] w-[45%]"
+      />
+      <ForgeSticker
+        src="/images/desk/stickers/mac-sticker.png"
+        alt="Peelable classic Mac sticker"
+        delay={0.6}
+        tilt={6}
+        displayScale={0.58}
+        displayAspect={1}
+        forgeOptions={sharedStickerForgeOptions}
+        surfaceFilter={deskStickerSurfaceFilter}
+        className="right-[9%] top-[74%] w-[21%]"
+      />
+    </motion.div>
+  </div>
+);
+
+const LocationDial = () => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -18 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.7, delay: 0.45 }}
+      className="absolute left-[6%] top-[63%] z-30 hidden w-[112px] sm:block lg:left-[4.3%] lg:top-[66%] lg:w-[128px]"
+    >
+      <img
+        src="/images/desk/reference/avatar-pixel.png"
+        alt="Jason's pixel avatar"
+        className="aspect-square w-full select-none object-contain drop-shadow-[0_10px_18px_rgba(0,0,0,0.3)]"
+        draggable={false}
+      />
+      <div className="mt-[-2px] flex h-7 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/10 text-xs text-white/55 backdrop-blur-md">
+        <MapPin className="h-3.5 w-3.5" />
+        <span>China</span>
+      </div>
+    </motion.div>
+  );
+};
+
+const formatDeskTime = (date) => new Intl.DateTimeFormat('en-US', {
+  hour: 'numeric',
+  minute: '2-digit',
+}).format(date);
+
+const DeskStatusBar = () => {
+  const [now, setNow] = useState(() => new Date());
+  const [isOnline, setIsOnline] = useState(() => typeof navigator === 'undefined' || navigator.onLine);
+  const [battery, setBattery] = useState({ level: null, charging: null });
+
+  useEffect(() => {
+    const clock = window.setInterval(() => setNow(new Date()), 1000);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.clearInterval(clock);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    let disposed = false;
+    let batteryManager;
+    let syncBattery;
+
+    if (typeof navigator === 'undefined' || typeof navigator.getBattery !== 'function') return undefined;
+
+    navigator.getBattery().then((manager) => {
+      if (disposed) return;
+      batteryManager = manager;
+      syncBattery = () => setBattery({ level: manager.level, charging: manager.charging });
+      syncBattery();
+      manager.addEventListener('levelchange', syncBattery);
+      manager.addEventListener('chargingchange', syncBattery);
+    }).catch(() => {});
+
+    return () => {
+      disposed = true;
+      if (!batteryManager || !syncBattery) return;
+      batteryManager.removeEventListener('levelchange', syncBattery);
+      batteryManager.removeEventListener('chargingchange', syncBattery);
+    };
+  }, []);
+
+  const batteryPercent = battery.level === null ? null : Math.round(battery.level * 100);
+  const BatteryIcon = battery.charging
+    ? BatteryCharging
+    : batteryPercent === null
+      ? Battery
+      : batteryPercent >= 67
+        ? BatteryFull
+        : batteryPercent >= 30
+          ? BatteryMedium
+          : BatteryLow;
+  const batteryLabel = batteryPercent === null
+    ? 'Battery status unavailable in this browser'
+    : `${batteryPercent}%${battery.charging ? ' · Charging' : ''}`;
+
+  return (
+    <div className="pointer-events-none absolute right-5 top-4 z-[60] flex items-center gap-3 text-white/60 sm:right-7 sm:top-5 sm:gap-4">
+      <Wifi className={`h-[15px] w-[15px] sm:h-4 sm:w-4 ${isOnline ? 'text-white/65' : 'text-white/25'}`} aria-label={isOnline ? 'Online' : 'Offline'} />
+      <Headphones className="h-[15px] w-[15px] sm:h-4 sm:w-4" aria-hidden="true" />
+      <Bluetooth className="h-[15px] w-[15px] sm:h-4 sm:w-4" aria-hidden="true" />
+      <div className="flex items-center gap-1" title={batteryLabel} aria-label={batteryLabel}>
+        <BatteryIcon className="h-[18px] w-[18px] sm:h-[19px] sm:w-[19px]" />
+        {batteryPercent !== null && <span className="text-[11px] font-medium tabular-nums text-white/65 sm:text-xs">{batteryPercent}%</span>}
+      </div>
+      <time dateTime={now.toISOString()} className="whitespace-nowrap text-[13px] font-medium tabular-nums text-white/65 sm:text-sm">
+        {formatDeskTime(now)}
+      </time>
+    </div>
+  );
+};
+
+const DeskNavigation = () => (
+  <div className="absolute bottom-[3.5%] left-1/2 z-40 -translate-x-1/2 lg:bottom-[-10%]">
+    <motion.nav
+      aria-label="Primary navigation"
+      className="flex gap-2 rounded-[28px] border border-white/15 bg-white/[0.07] p-2 backdrop-blur-xl"
+    >
+      {[
+        { label: 'Projects', href: '#projects', icon: Folder },
+        { label: 'About', href: '#about', icon: UserRound },
+        { label: 'Contact', href: 'mailto:jason2k@126.com', icon: AtSign },
+      ].map((item) => (
+        <motion.a
+          key={item.label}
+          href={item.href}
+          whileHover={{ y: -3, backgroundColor: 'rgba(255,255,255,0.11)' }}
+          whileTap={{ scale: 0.96 }}
+          className="flex h-12 w-12 items-center justify-center rounded-[17px] border border-white/10 bg-white/[0.08] text-white sm:h-[66px] sm:w-[66px] sm:rounded-[20px]"
+        >
+          <item.icon className="h-5 w-5 sm:h-7 sm:w-7" />
+          <span className="sr-only">{item.label}</span>
+        </motion.a>
+      ))}
+    </motion.nav>
+  </div>
+);
+
+const deskSpotlightPositions = {
+  ipad: { x: 14, y: 36 },
+  pencil: { x: 28, y: 26 },
+  macbook: { x: 50, y: 30 },
+  mouse: { x: 72, y: 38 },
+  headphones: { x: 86, y: 29 },
+};
+
+const DeskHero = () => {
+  const [focusedObject, setFocusedObject] = useState(null);
+  const [spotlightObject, setSpotlightObject] = useState('macbook');
+  const focusClearTimerRef = useRef(null);
+  const spotlightPosition = deskSpotlightPositions[spotlightObject];
+
+  useEffect(() => () => window.clearTimeout(focusClearTimerRef.current), []);
+
+  const focusObject = (objectName) => {
+    window.clearTimeout(focusClearTimerRef.current);
+    setSpotlightObject(objectName);
+    setFocusedObject(objectName);
+  };
+  const clearFocus = (objectName) => {
+    window.clearTimeout(focusClearTimerRef.current);
+    focusClearTimerRef.current = window.setTimeout(() => {
+      setFocusedObject((currentObject) => (currentObject === objectName ? null : currentObject));
+    }, 80);
+  };
+
+  return (
+  <section id="about" className="relative isolate h-[100svh] min-h-[760px] overflow-hidden bg-[#070707] text-white">
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_46%,#151515_0%,#0b0b0b_46%,#050505_100%)]" />
+    <div className="pointer-events-none absolute left-1/2 top-[12%] z-[2] h-[48%] w-[95%] max-w-[1320px] -translate-x-1/2 overflow-hidden rounded-[16px] border-2 border-[#1f1c1b] bg-[#191716] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04),inset_0_0_0_3px_rgba(0,0,0,0.24),0_14px_24px_rgba(0,0,0,0.18)] sm:top-[13%] sm:h-[52%] sm:w-[95%]">
+      <div
+        className="absolute inset-[5px] rounded-[11px] border border-dashed border-white/[0.055] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.32),inset_0_0_14px_rgba(0,0,0,0.18)]"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 50% 54%, rgba(91,52,42,0.20) 0%, rgba(30,25,24,0.30) 28%, rgba(9,9,9,0.94) 76%), repeating-linear-gradient(0deg, rgba(255,255,255,0.009) 0px, rgba(255,255,255,0.009) 1px, transparent 1px, transparent 3px), repeating-linear-gradient(90deg, rgba(0,0,0,0.08) 0px, rgba(0,0,0,0.08) 1px, transparent 1px, transparent 4px)',
+        }}
+      />
+    </div>
+    <div className="pointer-events-none absolute inset-0 z-20 bg-[radial-gradient(ellipse_at_50%_40%,transparent_38%,rgba(0,0,0,0.08)_66%,rgba(0,0,0,0.42)_100%)]" />
+    <DeskStatusBar />
+
+    <div className="relative z-10 mx-auto h-full w-full max-w-[1440px] translate-y-[2vh] overflow-visible">
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-20"
+        initial={{
+          opacity: 0,
+          background: `radial-gradient(ellipse 31% 42% at ${deskSpotlightPositions.macbook.x}% ${deskSpotlightPositions.macbook.y}%, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.012) 28%, rgba(0,0,0,0.055) 58%, rgba(0,0,0,0.25) 100%)`,
+        }}
+        animate={{
+          opacity: focusedObject ? 1 : 0,
+          background: `radial-gradient(ellipse 31% 42% at ${spotlightPosition.x}% ${spotlightPosition.y}%, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.012) 28%, rgba(0,0,0,0.055) 58%, rgba(0,0,0,0.25) 100%)`,
+        }}
+        transition={{
+          opacity: focusedObject
+            ? { duration: 0.4, ease: [0.22, 1, 0.36, 1] }
+            : { duration: 0.72, delay: 0.04, ease: [0.4, 0, 0.2, 1] },
+          background: { duration: 0.48, ease: [0.22, 1, 0.36, 1] },
+        }}
+      />
+
+      <motion.img
+        src="/images/desk/reference/ipad-pro-dark-clock.webp"
+        alt="iPad Pro showing a dark editorial clock screen"
+        initial={{ opacity: 0, rotate: -44, scale: 0.94 }}
+        animate={{ opacity: 1, rotate: -38, scale: 1 }}
+        onHoverStart={() => focusObject('ipad')}
+        onHoverEnd={() => clearFocus('ipad')}
+        whileHover={{
+          y: -4,
+          scale: 1.05,
+          rotate: -36.5,
+          filter: 'brightness(1.065) saturate(1.025) drop-shadow(0 14px 18px rgba(0,0,0,0.32))',
+          transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+        }}
+        transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        className="pointer-events-auto absolute left-[-4%] top-[32%] z-[8] w-[38%] select-none object-contain drop-shadow-[0_18px_18px_rgba(0,0,0,0.32)] sm:left-[0%] sm:top-[26%] sm:w-[27.5%] lg:left-[3%] lg:top-[25%] lg:w-[22.8%]"
+        style={{ zIndex: focusedObject === 'ipad' ? 24 : 8 }}
+        draggable={false}
+      />
+
+      <motion.img
+        src="/images/desk/reference/apple-pencil-pro.png"
+        alt="Apple Pencil Pro"
+        initial={{ opacity: 0, rotate: -22, scale: 0.9 }}
+        animate={{ opacity: 1, rotate: -17, scale: 1 }}
+        onHoverStart={() => focusObject('pencil')}
+        onHoverEnd={() => clearFocus('pencil')}
+        whileHover={{
+          y: -4,
+          scale: 1.06,
+          rotate: -15.5,
+          filter: 'brightness(1.07) drop-shadow(0 11px 14px rgba(0,0,0,0.32))',
+          transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+        }}
+        transition={{ duration: 0.9, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="pointer-events-auto absolute left-[25%] top-[21%] z-[9] hidden h-[17%] w-auto select-none object-contain drop-shadow-[0_8px_8px_rgba(0,0,0,0.3)] sm:block lg:left-[26.5%] lg:top-[20%] lg:h-[18%]"
+        style={{ zIndex: focusedObject === 'pencil' ? 24 : 9 }}
+        draggable={false}
+      />
+
+      <motion.div
+        initial={{ opacity: 0, rotate: 18, scale: 0.9 }}
+        animate={{ opacity: 1, rotate: 25, scale: 1 }}
+        onHoverStart={() => focusObject('headphones')}
+        onHoverEnd={() => clearFocus('headphones')}
+        transition={{ duration: 0.95, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        whileHover={{
+          y: -4,
+          rotate: 22,
+          scale: 1.04,
+          filter: 'brightness(1.065) saturate(1.02) drop-shadow(0 14px 18px rgba(0,0,0,0.32))',
+          transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+        }}
+        className="absolute right-[-2.8%] top-[18%] z-[9] w-[33.4%] select-none lg:right-[3.4%] lg:top-[12%] lg:w-[19.86%]"
+        style={{ zIndex: focusedObject === 'headphones' ? 24 : 9 }}
+      >
+        <img
+          src="/images/desk/reference/headphones.png"
+          alt="AirPods Max"
+          className="pointer-events-none h-auto w-full object-contain"
+          draggable={false}
+        />
+        {headphoneStickerPlacements.map((sticker, index) => (
+          <ForgeSticker
+            key={sticker.src}
+            src={sticker.src}
+            alt={`${sticker.alt} on AirPods Max`}
+            delay={0.68 + index * 0.045}
+            tilt={sticker.tilt}
+            displayScale={sticker.displayScale}
+            displayAspect={sticker.aspect}
+            forgeOptions={headphoneStickerForgeOptions}
+            surfaceFilter={headphoneStickerSurfaceFilter}
+            zIndex={sticker.zIndex}
+            className={sticker.className}
+          />
+        ))}
+      </motion.div>
+
+      <MacBookLayer
+        isFocused={focusedObject === 'macbook'}
+        onFocus={() => focusObject('macbook')}
+        onBlur={() => clearFocus('macbook')}
+      />
+
+      <motion.img
+        src="/images/desk/reference/pencil.png"
+        alt="Magic Mouse"
+        initial={{ opacity: 0, rotate: -8, y: -20 }}
+        animate={{ opacity: 1, rotate: -16, y: 0 }}
+        onHoverStart={() => focusObject('mouse')}
+        onHoverEnd={() => clearFocus('mouse')}
+        whileHover={{
+          y: -4,
+          scale: 1.06,
+          rotate: -14.5,
+          filter: 'brightness(1.075) drop-shadow(0 11px 15px rgba(0,0,0,0.33))',
+          transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+        }}
+        transition={{ duration: 0.75, delay: 0.42 }}
+        className="pointer-events-auto absolute right-[28%] top-[33%] z-[18] w-[6%] select-none object-contain lg:right-[27.2%] lg:top-[34.2%] lg:w-[4%]"
+        style={{ zIndex: focusedObject === 'mouse' ? 24 : 18 }}
+        draggable={false}
+      />
+
+      <div className="absolute left-1/2 top-[60%] z-30 w-full -translate-x-1/2 text-center sm:top-[58%] lg:left-[45%] lg:top-[63%]">
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col items-start gap-4 mb-8 sm:mb-12"
+          transition={{ duration: 0.8, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
         >
-          {/* 头像带在线状态 */}
-          <div className="relative">
-            <div className="h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-2xl ring-1 ring-black/5 dark:ring-white/10 shadow-lg">
-              <img
-                src="/assets/avatar.jpg"
-                alt={t.name}
-                className="h-full w-full object-cover"
-              />
-            </div>
-            {/* 在线状态指示器 */}
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white dark:border-black" />
+          <h1 className="whitespace-nowrap text-[clamp(54px,9.8vw,144px)] font-bold leading-none text-[#e4e4e4]">
+            Jason He.
+          </h1>
+          <div className="mx-auto mt-3 flex w-full max-w-[340px] flex-wrap items-center justify-center gap-x-2 gap-y-1 px-2 text-[10px] text-white/50 sm:max-w-[720px] sm:gap-x-5 sm:px-5 sm:text-base lg:relative lg:-left-3 lg:text-xl">
+            <span>AI Product Manager</span>
+            <span className="hidden text-white/25 lg:inline">•</span>
+            <span>Indie Developer</span>
+            <span className="hidden text-white/25 lg:inline">•</span>
+            <span>Product Designer</span>
           </div>
-
-          {/* 姓名和职位 */}
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                {t.name}
-              </h1>
-              <BadgeCheck className="h-5 w-5 sm:h-6 sm:w-6 text-sky-500" />
-            </div>
-            <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400">
-              {t.role}
-            </p>
-          </div>
-
-          {/* 个人简介 */}
-          <div className="text-sm sm:text-base text-zinc-700 dark:text-zinc-300 leading-relaxed space-y-3">
-            <p>
-              {lang === 'zh' 
-                ? '5年产品经验，AI独立开发者，小红书万粉科技博主，熟悉主流模型与AI产品；'
-                : '5 years of product experience, AI indie developer, tech blogger with 10k+ followers, familiar with mainstream AI models and products;'
-              }
-            </p>
-            <p>
-              {lang === 'zh' ? (
-                <>
-                  非编程背景通过Cursor独立完成4款效率/AI产品落地于上架，其中<strong className="text-zinc-900 dark:text-zinc-100">2款</strong>已上线App Store，累计用户<strong className="text-zinc-900 dark:text-zinc-100">15,000+</strong>，最高App Store排行效率类<strong className="text-zinc-900 dark:text-zinc-100">#48</strong>，即刻产品发布会多次<strong className="text-zinc-900 dark:text-zinc-100">TOP1</strong>。
-                </>
-              ) : (
-                <>
-                  Non-programming background, independently completed 4 products with Cursor, <strong className="text-zinc-900 dark:text-zinc-100">2</strong> launched on App Store, <strong className="text-zinc-900 dark:text-zinc-100">15,000+</strong> total users, peaked at <strong className="text-zinc-900 dark:text-zinc-100">#48</strong> in App Store Productivity, multiple <strong className="text-zinc-900 dark:text-zinc-100">TOP1</strong> on Jike product launches.
-                </>
-              )}
-            </p>
-          </div>
-        </motion.div>
-
-        {/* 小红书入口卡片 */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.15 }}
-          className="mb-8 sm:mb-12"
-        >
-          <div className="mb-4">
-            <p className="text-xs sm:text-sm text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
-              SOCIAL
-            </p>
-            <h2 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100">
-              {lang === 'zh' ? '小红书' : 'Xiaohongshu'}
-            </h2>
-          </div>
-          
-          <div className="flex gap-3 sm:gap-4">
-            <XiaohongshuCard
-              name="2k"
-              followers="15,000+"
-              href="https://xhslink.com/m/dP5NFoP6Wn"
-              lang={lang}
-            />
-            <XiaohongshuCard
-              name="2kk"
-              followers="2,000+"
-              href="https://xhslink.com/m/6cQte1ftsiI"
-              lang={lang}
-            />
-          </div>
-        </motion.div>
-
-        {/* 项目展示区域 */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mb-8"
-        >
-          <div className="mb-6">
-            <p className="text-xs sm:text-sm text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
-              PROJECT
-            </p>
-            <h2 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-100">
-              {lang === 'zh' ? '独立开发作品' : 'Indie Projects'}
-            </h2>
-          </div>
-
-          {/* 项目列表 */}
-          <div className="space-y-8 sm:space-y-12">
-            {projects.map((project, index) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                lang={lang}
-                index={index}
-              />
-            ))}
+          <div className="mx-auto mt-2 hidden max-w-[720px] items-center justify-center gap-6 text-base text-white/45 sm:flex lg:relative lg:-left-3 lg:text-lg">
+            <a href="mailto:jason2k@126.com" className="flex items-center gap-2 hover:text-white/75">
+              <Mail className="h-5 w-5" />
+              <span>jason2k@126.com</span>
+            </a>
+            <span className="text-white/20">•</span>
+            <a href="tel:+8617666003839" className="flex items-center gap-2 hover:text-white/75">
+              <Phone className="h-5 w-5" />
+              <span>+86 176 6600 3839</span>
+            </a>
           </div>
         </motion.div>
       </div>
-    </section>
+
+      <LocationDial />
+
+      <DeskNavigation />
+    </div>
+  </section>
+  );
+};
+
+const stickerPreviews = [
+  { src: '/images/desk/stickers/preview/origin-tattoo.png', alt: 'Origin Tattoo Killer sticker', aspect: 624 / 507, scale: 0.74, tilt: -5 },
+  { src: '/images/desk/stickers/preview/chill.png', alt: 'Chill sticker', aspect: 718 / 517, scale: 0.78, tilt: 4 },
+  { src: '/images/desk/stickers/preview/gojira.png', alt: 'Gojira sticker', aspect: 587 / 626, scale: 0.67, tilt: -3 },
+  { src: '/images/desk/stickers/preview/nasa-meatball.png', alt: 'NASA meatball sticker', aspect: 415 / 343, scale: 0.7, tilt: 5 },
+  { src: '/images/desk/stickers/preview/nasa-retro.png', alt: 'Retro NASA sticker', aspect: 1, scale: 0.68, tilt: -4 },
+  { src: '/images/desk/stickers/preview/nasa-wordmark.png', alt: 'NASA wordmark sticker', aspect: 416 / 319, scale: 0.76, tilt: 3 },
+  { src: '/images/desk/stickers/preview/ares.png', alt: 'Ares mission sticker', aspect: 384 / 340, scale: 0.7, tilt: -5 },
+  { src: '/images/desk/stickers/preview/nasa-rocket.png', alt: 'NASA rocket sticker', aspect: 342 / 397, scale: 0.64, tilt: 4 },
+];
+
+const headphoneStickerPlacements = [
+  { ...stickerPreviews[0], displayScale: 0.68, tilt: -7, zIndex: 31, className: 'left-[15%] top-[52%] w-[31%]' },
+  { src: '/images/desk/stickers/preview/phone-dogs.png', alt: 'Double phone dogs sticker', aspect: 452 / 302, displayScale: 0.67, tilt: 5, zIndex: 32, className: 'left-[23%] top-[58%] w-[30%]' },
+  { ...stickerPreviews[1], displayScale: 0.62, tilt: -4, zIndex: 33, className: 'left-[20%] top-[66%] w-[29.1%]' },
+  { ...stickerPreviews[2], displayScale: 0.64, tilt: 7, zIndex: 34, className: 'left-[16%] top-[63%] w-[24.25%]' },
+  { ...stickerPreviews[4], displayScale: 0.72, tilt: 6, zIndex: 31, className: 'left-[55%] top-[60%] w-[23.28%]' },
+  { src: '/images/desk/stickers/preview/red-spike-head.png', alt: 'Red spike head sticker', aspect: 453 / 351, displayScale: 0.68, tilt: -5, zIndex: 35, className: 'left-[52%] top-[63%] w-[27.16%]' },
+  { ...stickerPreviews[6], displayScale: 0.65, tilt: 3, zIndex: 33, className: 'left-[60%] top-[69%] w-[26.19%]' },
+  { ...stickerPreviews[7], displayScale: 0.68, tilt: -7, zIndex: 34, className: 'left-[69%] top-[62%] w-[24.25%]' },
+];
+
+export const HeroSection = ({ lang }) => {
+  const appStore = {
+    name: 'App Store',
+    eyebrow: 'Download on the',
+    icon: '/images/codeway-reference/apple.svg',
+  };
+  const projects = [
+    {
+      id: 'chat-ask-ai',
+      title: 'Chat & Ask AI',
+      category: 'Chatbot & Smart Assistant',
+      description: 'Our flagship chatbot hit the market first, long before the AI boom. We built it to make AI accessible to everyone. It’s a bold, always-learning interface for exploring human-AI interaction at scale.',
+      mobileDescription: 'A bold chatbot built before ChatGPT’s app—designed to make AI chat accessible, intuitive, and constantly learning.',
+      background: '#0f5136',
+      icon: '/images/codeway-reference/chat-icon.png',
+      screen: '/images/codeway-reference/chat-screen.jpg',
+      screenOverlay: '/images/codeway-reference/phone-screen-chat.png',
+      rating: '/images/codeway-reference/chat-rating.svg',
+      stores: [
+        { ...appStore, url: 'https://apps.apple.com/us/app/chat-ask-ai-by-codeway/id1668787639' },
+      ],
+      metrics: [
+        { value: '50M+', label: 'Downloads' },
+        { value: '4.6', rating: true },
+        { value: '300M+', label: 'Chats' },
+      ],
+    },
+    {
+      id: 'retake',
+      title: 'Retake',
+      category: 'Face & Photo Editor',
+      description: 'We developed Retake using our in-house AI to reimagine photography. It generates hyper-realistic retakes from any photo, turning missed moments into stunning portraits. No filters, no fakery.',
+      mobileDescription: 'Our in-house AI turns missed moments into hyper-realistic portraits. No filters, no fakery.',
+      background: '#5b0034',
+      icon: '/images/codeway-reference/retake-icon.png',
+      screen: '/images/codeway-reference/retake-screen.jpg',
+      screenOverlay: '/images/codeway-reference/phone-screen-retake.png',
+      rating: '/images/codeway-reference/rating.svg',
+      stores: [
+        { ...appStore, url: 'https://apps.apple.com/us/app/retake-ai-face-selfie-editor/id6466298983' },
+      ],
+      metrics: [
+        { value: '17M+', label: 'Downloads' },
+        { value: '4.3', rating: true },
+      ],
+    },
+    {
+      id: 'learna',
+      title: 'Learna',
+      category: 'AI English Tutor',
+      description: 'Learna is our AI-powered English tutor that speaks, listens, and adapts like a human teacher. We combined talking head tech, Gaussian image generation, and natural language understanding to make language learning feel personal, fun, and effective.',
+      mobileDescription: 'An AI English tutor that speaks, listens, and adapts like a human teacher.',
+      background: '#075daa',
+      icon: '/images/codeway-reference/learna-icon.png',
+      screen: '/images/codeway-reference/learna-screen.jpg',
+      screenOverlay: '/images/codeway-reference/phone-screen-learna.png',
+      rating: '/images/codeway-reference/rating.svg',
+      stores: [
+        { ...appStore, url: 'https://apps.apple.com/us/app/speak-learn-english-learna/id6478287397' },
+      ],
+      metrics: [
+        { value: '50M+', label: 'Downloads' },
+        { value: '4.5', rating: true },
+      ],
+    },
+  ];
+
+  return (
+    <>
+      <DeskHero />
+      <ScrollProjectsShowcase projects={projects} />
+    </>
   );
 };

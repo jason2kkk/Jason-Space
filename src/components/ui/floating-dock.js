@@ -47,6 +47,8 @@ import { translations } from '../../locales/translations';
 export const FloatingDock = ({ lang, isNearFooter, setIsNearFooter, items, ...props }) => {
   // eslint-disable-next-line no-unused-vars
   const _t = translations[lang];
+  const [isPastHero, setIsPastHero] = useState(false);
+  const [isProjectShowcaseActive, setIsProjectShowcaseActive] = useState(false);
 
   useEffect(() => {
     /**
@@ -72,6 +74,12 @@ export const FloatingDock = ({ lang, isNearFooter, setIsNearFooter, items, ...pr
       if (!ticking) {
         window.requestAnimationFrame(() => {
           checkFooterButtonsVisibility();
+          setIsPastHero(window.scrollY > window.innerHeight * 0.75);
+          const projects = document.querySelector('#projects');
+          if (projects) {
+            const projectsRect = projects.getBoundingClientRect();
+            setIsProjectShowcaseActive(projectsRect.top <= 0 && projectsRect.bottom >= window.innerHeight);
+          }
           ticking = false;
         });
         ticking = true;
@@ -80,6 +88,12 @@ export const FloatingDock = ({ lang, isNearFooter, setIsNearFooter, items, ...pr
 
     window.addEventListener('scroll', onScroll);
     checkFooterButtonsVisibility(); // 初始检查
+    setIsPastHero(window.scrollY > window.innerHeight * 0.75);
+    const projects = document.querySelector('#projects');
+    if (projects) {
+      const projectsRect = projects.getBoundingClientRect();
+      setIsProjectShowcaseActive(projectsRect.top <= 0 && projectsRect.bottom >= window.innerHeight);
+    }
 
     return () => window.removeEventListener('scroll', onScroll);
   }, [setIsNearFooter]);
@@ -111,7 +125,7 @@ export const FloatingDock = ({ lang, isNearFooter, setIsNearFooter, items, ...pr
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
       <AnimatePresence>
-        {!isNearFooter && (
+        {!isNearFooter && isPastHero && !isProjectShowcaseActive && (
           <motion.div
             className="pointer-events-auto"
             initial="initial"
@@ -174,7 +188,7 @@ const FloatingDockMobile = ({
                 transition={{ delay: (filteredItems.length - 1 - idx) * 0.05 }}
                 className="flex items-center gap-2"
               >
-                <span className="text-xs font-medium text-gray-600 dark:text-gray-300 bg-white/80 dark:bg-gray-800/80 px-2 py-1 rounded-lg backdrop-blur-sm">
+                <span className="text-xs font-medium text-white/80 bg-black/70 px-2 py-1 rounded-lg backdrop-blur-sm">
                   {item.title}
                 </span>
                 <a
@@ -183,9 +197,9 @@ const FloatingDockMobile = ({
                     item.onClick?.(e);
                     setOpen(false);
                   }}
-                  className="h-10 w-10 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-lg border border-gray-200/20 dark:border-white/10 flex items-center justify-center active:scale-95 transition-transform"
+                  className="h-10 w-10 rounded-full bg-black/70 backdrop-blur-md shadow-lg border border-white/10 flex items-center justify-center active:scale-95 transition-transform"
                 >
-                  <div className="h-5 w-5 text-gray-600 dark:text-gray-300">{item.icon}</div>
+                  <div className="h-5 w-5 text-white/80">{item.icon}</div>
                 </a>
               </motion.div>
             ))}
@@ -194,11 +208,11 @@ const FloatingDockMobile = ({
       </AnimatePresence>
       <motion.button
         onClick={() => setOpen(!open)}
-        className="h-14 w-14 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-lg border border-gray-200/20 dark:border-white/10 flex items-center justify-center active:scale-95 transition-transform"
+        className="h-14 w-14 rounded-full bg-black/70 backdrop-blur-md shadow-lg border border-white/10 flex items-center justify-center active:scale-95 transition-transform"
         animate={{ rotate: open ? 45 : 0 }}
         transition={{ duration: 0.2 }}
       >
-        <svg className="h-6 w-6 text-gray-600 dark:text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <svg className="h-6 w-6 text-white/80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           {open ? (
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           ) : (
@@ -225,14 +239,14 @@ const FloatingDockDesktop = ({
         "left-1/2 -translate-x-1/2",
         "hidden md:flex items-center gap-5",
         "px-6 py-3 rounded-2xl",
-        "bg-white/60 dark:bg-gray-800/60 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.1)] backdrop-blur-xl",
+        "bg-black/55 shadow-[0_18px_55px_-12px_rgba(0,0,0,0.65)] backdrop-blur-xl",
         "border border-white/10",
-        "hover:bg-white/70 dark:hover:bg-gray-800/70 hover:shadow-[0_12px_36px_-4px_rgba(0,0,0,0.15)] transition-all duration-300",
+        "hover:bg-black/65 hover:shadow-[0_22px_65px_-12px_rgba(0,0,0,0.8)] transition-all duration-300",
         className
       )}
     >
-      {items.map((item) => (
-        <IconContainer mouseX={mouseX} key={item.title} {...item} />
+      {items.map((item, index) => (
+        <IconContainer mouseX={mouseX} key={item.title || `separator-${index}`} {...item} />
       ))}
     </motion.div>
   );
@@ -298,13 +312,13 @@ function IconContainer({
         <motion.div
           ref={ref}
           style={{ width, height }}
-          className="relative flex items-center justify-center rounded-xl hover:bg-white/5 transition-colors"
+          className="relative flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
           <motion.div
             style={{ width: widthIcon, height: heightIcon }}
-            className="flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="flex items-center justify-center text-white/70 hover:text-white transition-colors"
           >
             {React.cloneElement(icon, { 
               className: 'w-6 h-6 transition-transform',
@@ -328,11 +342,11 @@ function IconContainer({
               }}
               className={cn(
                 "px-4 py-2 rounded-lg",
-                "bg-white/95 dark:bg-gray-800/95 text-gray-800 dark:text-white text-sm font-medium",
+                "bg-black/85 text-white text-sm font-medium",
                 "whitespace-nowrap shadow-xl",
                 "select-none",
-                "border border-gray-200/20 dark:border-white/10",
-                "backdrop-blur-sm"
+                "border border-white/10",
+                "backdrop-blur-md"
               )}
             >
               {title}

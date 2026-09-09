@@ -31,14 +31,14 @@ export const Navbar = ({ currentLang, isDark, onThemeToggle }) => {
   return (
     <div className={cn(
       "fixed top-0 left-0 right-0 z-50",
-      "bg-white/80 dark:bg-transparent",
-      "backdrop-blur-sm dark:backdrop-blur-none"
+      "bg-black/28 backdrop-blur-xl",
+      "border-b border-white/10"
     )}>
       <div className="flex items-center justify-between px-4 sm:px-8 py-3 sm:py-4">
         {/* 左侧：头像和标题 */}
         <div className="flex items-center gap-2 sm:gap-3">
           <div 
-            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer hover:scale-110 transition-transform"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gray-900 cursor-pointer ring-1 ring-white/15 hover:scale-110 transition-transform"
             onClick={showAvatarToast}
           >
             <img
@@ -47,7 +47,7 @@ export const Navbar = ({ currentLang, isDark, onThemeToggle }) => {
               className="w-full h-full object-cover"
             />
           </div>
-          <span className="text-sm sm:text-base md:text-lg font-medium text-gray-800 dark:text-gray-200">
+          <span className="text-sm sm:text-base md:text-lg font-medium text-white/85">
             <TypeWriter text="Jason's Space" delay={150} />
           </span>
         </div>
