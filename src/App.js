@@ -18,58 +18,21 @@
  * - FloatingDock：浮动导航栏
  */
 
-import React, { useState, useEffect } from 'react';
-import FloatingDock from './components/ui/floating-dock';
-import { translations } from './locales/translations';
-import { HeroSection } from './components/sections/hero-section';
-import { cn } from './lib/utils';
-import { analytics } from './lib/analytics';
-import { getDockItems } from './config/dock-items';
+import React from 'react';
+import './App.css';
 
+function BlankPage({ page }) {
+  return <main className="blank-page" data-page={page} aria-label={page} />;
+}
 
-/**
- * 应用程序主组件
- * 整合所有页面元素，管理全局状态
- */
 function App() {
-  // 状态管理
-  const currentLang = 'zh'; // 固定使用中文
-  const t = translations[currentLang]; // 获取当前语言的翻译文本
-  const [isNearFooter, setIsNearFooter] = useState(false); // 是否接近页脚，用于控制Dock显示
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
 
-  useEffect(() => {
-    // 检查本地存储的主题设置
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
-
-  useEffect(() => {
-    // 初始化埋点工具
-    analytics.init();
-  }, []);
-
-  return (
-    <div className={cn(
-      "min-h-screen w-full",
-      "bg-white dark:bg-black",
-      "text-gray-900 dark:text-gray-100",
-      "transition-colors duration-200"
-    )}>
-      <div className="relative z-20">
-        <HeroSection lang={currentLang} />
-      </div>
-
-      <FloatingDock 
-        items={getDockItems(currentLang, t)}
-        isNearFooter={isNearFooter}
-        setIsNearFooter={setIsNearFooter}
-        lang={currentLang}
-        t={t}
-      />
-    </div>
+  return path === '/page-2' ? (
+    <BlankPage page="page-2" />
+  ) : (
+    <BlankPage page="page-1" />
   );
 }
 
-export default App; 
+export default App;
