@@ -4,9 +4,15 @@ import { getVolume, playVolumeTick, setVolume, subscribe, unlockAudio } from '..
 import { AquaIpod } from './aqua-ipod';
 import { ForgeSticker, aquaStickerForgeOptions } from '../ui/forge-sticker';
 import { BrowserWindowBody, WORK_APPS, browserSectionLabel } from '../ui/aqua-browser';
+import { createPageScrollGuard } from '../../lib/page-scroll-lock';
 
 const DOCK_ICON = 56;
 const DOCK_ICON_MAX = 88;
+const DOCK_OFFSET_BOTTOM = 14;
+const DOCK_REST_HEIGHT = 82;
+const DOCK_REST_WIDTH = 508;
+const NOTES_DOCK_GAP = 12;
+const NOTES_VIEW_INSET = 16;
 const BROWSER_MIN_W = 480;
 const BROWSER_MIN_H = 360;
 const BROWSER_DIM_Z = 85;
@@ -21,9 +27,9 @@ const windowCatalog = {
   },
   notes: {
     title: 'Profile',
-    x: 42,
-    y: 16,
-    w: 280,
+    right: `max(${NOTES_VIEW_INSET}px, calc((100% - ${DOCK_REST_WIDTH}px) / 2))`,
+    bottom: DOCK_OFFSET_BOTTOM + DOCK_REST_HEIGHT + NOTES_DOCK_GAP,
+    w: 360,
     card: true,
   },
   about: {
@@ -66,7 +72,7 @@ const windowCatalog = {
   browser: {
     title: 'Safari',
     left: 250,
-    top: 40,
+    top: 64,
     w: 1000,
     h: 700,
     card: true,
@@ -83,7 +89,7 @@ const windowCatalog = {
 
 const dockItems = [
   { id: 'finder', label: 'Finder', src: '/images/aqua/mac.png' },
-  { id: 'appstore', label: 'App Store', src: '/images/aqua/appstore.png' },
+  { id: 'appstore', label: 'My Products', src: '/images/aqua/appstore.png' },
   { id: 'notes', label: 'Profile', src: '/images/aqua/stickies.png' },
   { id: 'projects', label: 'My Design', src: '/images/aqua/folder.png' },
   { id: 'xiaohongshu', label: 'Xiaohongshu', src: '/images/aqua/ie-dock.png' },
@@ -499,6 +505,7 @@ const DesktopIcons = ({ interactive, selectedId, onSelect, onOpen }) => (
         type="button"
         className={`aqua-desktop-icon${selectedId === item.id ? ' is-on' : ''}`}
         disabled={!interactive}
+        onPointerDown={(event) => event.stopPropagation()}
         onClick={() => {
           onSelect(item.id);
           onOpen(item.id);
@@ -716,6 +723,8 @@ const DesignGallery = ({ onPreview }) => (
                   className="aqua-design__img"
                   src={src}
                   alt={group.title}
+                  loading="lazy"
+                  decoding="async"
                   draggable={false}
                 />
               </figure>
@@ -795,9 +804,9 @@ const XHS_ACCOUNTS = [
     name: '2k',
     src: encodeURI('/小红书1.PNG'),
     stats: [
-      { type: 'follow', value: '16k' },
-      { type: 'like', value: '13.6w' },
-      { type: 'read', value: '500w' },
+      { type: 'follow', value: '16k+' },
+      { type: 'like', value: '13.6w+' },
+      { type: 'read', value: '500w+' },
     ],
     url: 'https://www.xiaohongshu.com/user/profile/5b091ac7f7e8b97d08005f36?xsec_token=&xsec_source=pc_note',
   },
@@ -806,9 +815,9 @@ const XHS_ACCOUNTS = [
     name: '2kk',
     src: encodeURI('/小红书2.png'),
     stats: [
-      { type: 'follow', value: '2560' },
-      { type: 'like', value: '8300' },
-      { type: 'read', value: '30w' },
+      { type: 'follow', value: '2560+' },
+      { type: 'like', value: '8300+' },
+      { type: 'read', value: '30w+' },
     ],
     url: 'https://www.xiaohongshu.com/user/profile/65438390000000000301e354?xsec_token=&xsec_source=pc_note',
   },
@@ -986,13 +995,26 @@ const WindowBody = ({
 
   if (id === 'notes') {
     return (
-      <div className="px-5 py-4 text-[13px] leading-relaxed text-[#333]" style={{ background: '#fff7a0' }}>
-        <p className="mb-3 font-bold">Profile</p>
-        <ul className="list-disc space-y-2 pl-5">
-          <li>Building Jason's Space as a two-page OS</li>
-          <li>AI Product · Indie · Product Design</li>
-          <li>Next: drop real project cards here</li>
-        </ul>
+      <div className="aqua-notes">
+        <h3 className="aqua-notes__title">Professional Experience</h3>
+        <div className="aqua-notes__list">
+          <div>
+            <p className="aqua-notes__company">广州余音（荔枝集团）</p>
+            <p>2026.03 – 至今｜AI产品经理</p>
+          </div>
+          <div>
+            <p className="aqua-notes__company">珠海达酷互动科技</p>
+            <p>2023.08 – 2026.02｜高级产品经理</p>
+          </div>
+          <div>
+            <p className="aqua-notes__company">深圳淘乐网络科技</p>
+            <p>2022.06 – 2023.08｜产品运营</p>
+          </div>
+          <div>
+            <p className="aqua-notes__company">深圳腾讯音乐娱乐科技</p>
+            <p>2021.11 – 2022.05｜产品运营</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -1116,16 +1138,7 @@ const useScrollLock = (locked) => {
       if (window.scrollY > 0) window.scrollTo(0, 0);
     };
 
-    const prevent = (event) => {
-      event.preventDefault();
-      pin();
-    };
-
-    const onKey = (event) => {
-      if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) {
-        event.preventDefault();
-      }
-    };
+    const guard = createPageScrollGuard({ onBlock: pin });
 
     pin();
     document.documentElement.classList.add('mac-hero-locked');
@@ -1137,10 +1150,8 @@ const useScrollLock = (locked) => {
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overscrollBehavior = 'none';
     document.documentElement.style.overscrollBehavior = 'none';
-    window.addEventListener('wheel', prevent, { passive: false });
-    window.addEventListener('touchmove', prevent, { passive: false });
+    guard.attach();
     window.addEventListener('scroll', pin);
-    window.addEventListener('keydown', onKey);
 
     return () => {
       document.documentElement.classList.remove('mac-hero-locked');
@@ -1148,10 +1159,8 @@ const useScrollLock = (locked) => {
       document.documentElement.style.overflow = previousHtml;
       document.body.style.overscrollBehavior = previousOverscroll;
       document.documentElement.style.overscrollBehavior = previousHtmlOverscroll;
-      window.removeEventListener('wheel', prevent);
-      window.removeEventListener('touchmove', prevent);
+      guard.detach();
       window.removeEventListener('scroll', pin);
-      window.removeEventListener('keydown', onKey);
     };
   }, [locked]);
 };
@@ -1235,6 +1244,7 @@ export const OsDesktop = React.memo(({
   };
 
   const openBrowserForApp = (appId) => {
+    if (!interactive) return;
     setBrowserUrl('');
     setBrowserWebTitle('');
     setBrowserAppId(appId);
@@ -1243,15 +1253,16 @@ export const OsDesktop = React.memo(({
   };
 
   const openBrowserForWeb = (url, title) => {
+    if (!interactive) return;
     setBrowserUrl(url);
     setBrowserWebTitle(title || 'Xiaohongshu');
     openWindow('browser');
   };
 
   const handleBrowserAppIdChange = (appId) => {
-    setBrowserUrl('');
-    setBrowserWebTitle('');
     setBrowserAppId(appId);
+    setBrowserUrl((current) => (current ? '' : current));
+    setBrowserWebTitle((current) => (current ? '' : current));
   };
 
   const closeDesignPreview = useCallback(() => {
@@ -1273,11 +1284,19 @@ export const OsDesktop = React.memo(({
     focusWindow(id);
   };
 
+  const handleDesktopBack = () => {
+    onBack?.();
+  };
+
   const closeWindow = (id) => {
     if (ALWAYS_OPEN.includes(id)) return;
     exitIntentRef.current[id] = 'close';
     setOpenIds((current) => current.filter((item) => item !== id));
     setMinimizedIds((current) => current.filter((item) => item !== id));
+    if (id === 'browser') {
+      setBrowserUrl('');
+      setBrowserWebTitle('');
+    }
   };
 
   const minimizeWindow = (id) => {
@@ -1290,9 +1309,10 @@ export const OsDesktop = React.memo(({
   };
 
   const onDesktopPointerDown = (event) => {
-    if (!interactive || event.button !== 0 || !openIds.includes('browser')) return;
+    if (!interactive || event.button !== 0) return;
     if (event.target !== event.currentTarget) return;
-    minimizeWindow('browser');
+    setSelectedDesktopId(null);
+    if (openIds.includes('browser')) minimizeWindow('browser');
   };
 
   const handleDockOpen = (dockId) => {
@@ -1581,7 +1601,7 @@ export const OsDesktop = React.memo(({
           <button
             type="button"
             className="aqua-back__hit"
-            onClick={onBack}
+            onClick={handleDesktopBack}
             disabled={!interactive}
             aria-label="Back"
           />
@@ -1634,7 +1654,7 @@ export const OsDesktop = React.memo(({
                   ? (browserWebTitle || 'Xiaohongshu')
                   : browserSectionLabel(browserAppId))
                 : meta.title}
-              className={`absolute${meta.strip ? ' aqua-window--strip' : ''}${meta.card ? ' aqua-window--card' : ''}${meta.browser ? ' aqua-window--browser' : ''}${id === 'computer' ? ' aqua-window--computer' : ''}${id === 'projects' ? ' aqua-window--design' : ''}`}
+              className={`absolute${meta.strip ? ' aqua-window--strip' : ''}${meta.card ? ' aqua-window--card' : ''}${meta.browser ? ' aqua-window--browser' : ''}${id === 'computer' ? ' aqua-window--computer' : ''}${id === 'projects' ? ' aqua-window--design' : ''}${id === 'notes' ? ' aqua-window--notes' : ''}`}
               interactive={interactive}
               draggable
               resizable={meta.browser}
@@ -1647,9 +1667,12 @@ export const OsDesktop = React.memo(({
               role={id === 'computer' ? 'dialog' : undefined}
               aria-labelledby={id === 'computer' ? 'about-computer-title' : undefined}
               style={{
-                left: pos ? pos.left : (meta.left != null ? meta.left : `${meta.x}%`),
+                left: pos
+                  ? pos.left
+                  : (meta.right != null ? 'auto' : (meta.left != null ? meta.left : `${meta.x}%`)),
                 top: pos ? pos.top : (meta.bottom != null ? 'auto' : (meta.top != null ? meta.top : `${meta.y}%`)),
                 ...(pos || meta.bottom == null ? {} : { bottom: meta.bottom }),
+                ...(pos || meta.right == null ? {} : { right: meta.right }),
                 width: meta.strip ? 'max-content' : meta.card ? `${windowW}px` : `${meta.w}%`,
                 height: meta.strip
                   ? 'auto'
@@ -1685,7 +1708,7 @@ export const OsDesktop = React.memo(({
                   };
                 },
               }}
-              initial={interactive ? enter : rest}
+              initial={interactive && id !== 'browser' ? enter : rest}
               animate="shown"
               exit="exit"
               transition={pos

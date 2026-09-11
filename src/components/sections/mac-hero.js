@@ -1,9 +1,13 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import DecryptedText from '../ui/DecryptedText';
 import Shuffle from '../ui/Shuffle';
 import ClassicMacScreenModel from '../three/ClassicMacScreenModel';
 import SideRays from '../ui/SideRays';
-import { OsDesktop } from './os-desktop';
+import { loadStickerForge } from '../ui/forge-sticker';
+import { createPageScrollGuard } from '../../lib/page-scroll-lock';
+
+const loadOsDesktop = () => import('./os-desktop');
+const OsDesktop = lazy(() => loadOsDesktop().then((mod) => ({ default: mod.OsDesktop })));
 
 class MacRevealBoundary extends React.Component {
   constructor(props) {
@@ -56,11 +60,21 @@ const HOME_SHOW_ZOOM = 0.26;
 const HYDRATE_ZOOM = 0.58;
 const UNHYDRATE_ZOOM = 0.50;
 const FADE_START_ZOOM = 0.70;
-const LOCK_ZOOM = 0.97;
+const LOCK_ZOOM = 0.96;
+const LATE_GAIN = 2.15;
+const SETTLE_MS = 120;
 
-const zoomFromProgress = (p) => (
-  Math.min(1, Math.max(0, (p - START_ZOOM) / (FILL_SCREEN - START_ZOOM)))
+const linearZoomFromProgress = (p) => (
+  (p - START_ZOOM) / (FILL_SCREEN - START_ZOOM)
 );
+
+const zoomFromProgress = (p) => {
+  const linear = linearZoomFromProgress(p);
+  if (linear <= FADE_START_ZOOM) {
+    return Math.min(1, Math.max(0, linear));
+  }
+  return Math.min(1, FADE_START_ZOOM + (linear - FADE_START_ZOOM) * LATE_GAIN);
+};
 
 const easeInOutCubic = (t) => (
   t < 0.5
@@ -155,14 +169,11 @@ const FallingStickers = ({ reduceMotion }) => {
   );
 };
 
-const ScrollHint = ({ opacity, label }) => (
+const ScrollHint = ({ layerRef, label }) => (
   <div
+    ref={layerRef}
     data-scroll-hint
     className="mac-hero__scroll-hint pointer-events-none absolute bottom-[5%] left-1/2 z-[80] flex -translate-x-1/2 flex-col items-center gap-2.5 text-[12px] font-bold tracking-[0.18em] text-white/55 sm:bottom-[4%] sm:text-[13px]"
-    style={{
-      opacity,
-      visibility: opacity < 0.02 ? 'hidden' : 'visible',
-    }}
   >
     <span className="font-bold">{label}</span>
     <svg
@@ -189,7 +200,6 @@ const applyLayerFade = (node, value, pointerAt) => {
 };
 
 export const MacHero = () => {
-  const [progress, setProgress] = useState(0);
   const [desktopLocked, setDesktopLocked] = useState(false);
   const [modelMounted, setModelMounted] = useState(true);
   const [desktopReady, setDesktopReady] = useState(false);
@@ -206,13 +216,69 @@ export const MacHero = () => {
   const liteRef = useRef(false);
   const desktopLayerRef = useRef(null);
   const modelLayerRef = useRef(null);
+  const hudLayerRef = useRef(null);
+  const hintLayerRef = useRef(null);
   const desktopFadeRef = useRef(0);
   const modelFadeRef = useRef(1);
+  const hudFadeRef = useRef(1);
+  const desktopPrefetchedRef = useRef(false);
+  const lockScrollYRef = useRef(0);
+  const pageGuardRef = useRef(null);
+  const commitDesktopLockRef = useRef(() => {});
 
   const applyDesktopFade = (value) => {
     desktopFadeRef.current = value;
-    applyLayerFade(desktopLayerRef.current, value, 0.55);
+    applyLayerFade(desktopLayerRef.current, value, desktopLockedRef.current ? -1 : 0.55);
   };
+
+  const applyPageScrollLock = () => {
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overscrollBehavior = 'none';
+    document.documentElement.style.overscrollBehavior = 'none';
+    document.documentElement.classList.add('mac-hero-locked');
+  };
+
+  const pinPageScroll = () => {
+    if (leaveDesktopRef.current || !desktopLockedRef.current) return;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const target = max > 8 ? Math.min(lockScrollYRef.current, Math.max(0, max)) : 0;
+    if (Math.abs(window.scrollY - target) > 0.5) {
+      window.scrollTo(0, target);
+    }
+  };
+
+  const ensurePageGuard = () => {
+    if (pageGuardRef.current) return;
+    const guard = createPageScrollGuard({ onBlock: pinPageScroll });
+    guard.attach();
+    pageGuardRef.current = guard;
+  };
+
+  const releasePageGuard = () => {
+    pageGuardRef.current?.detach();
+    pageGuardRef.current = null;
+  };
+
+  const commitDesktopLock = () => {
+    if (desktopLockedRef.current) return;
+    desktopLockedRef.current = true;
+    desktopReadyRef.current = true;
+    homeLiveRef.current = false;
+    lockScrollYRef.current = window.scrollY;
+    applyPageScrollLock();
+    ensurePageGuard();
+    pinPageScroll();
+    zoomDriveRef.current = 1;
+    applyDesktopFade(1);
+    applyModelFade(0);
+    applyHudFade(0);
+    setDesktopReady(true);
+    setDesktopSettled(true);
+    setDesktopLocked(true);
+    setHomeLive(false);
+  };
+  commitDesktopLockRef.current = commitDesktopLock;
 
   const applyModelFade = (value) => {
     modelFadeRef.current = value;
@@ -221,7 +287,7 @@ export const MacHero = () => {
 
   const setDesktopLayer = (node) => {
     desktopLayerRef.current = node;
-    if (node) applyLayerFade(node, desktopFadeRef.current, 0.55);
+    if (node) applyLayerFade(node, desktopFadeRef.current, desktopLockedRef.current ? -1 : 0.55);
   };
 
   const setModelLayer = (node) => {
@@ -229,8 +295,43 @@ export const MacHero = () => {
     if (node) applyLayerFade(node, modelFadeRef.current);
   };
 
+  const applyHudFade = (value) => {
+    hudFadeRef.current = value;
+    applyLayerFade(hudLayerRef.current, value);
+    applyLayerFade(hintLayerRef.current, value);
+  };
+
+  const setHudLayer = (node) => {
+    hudLayerRef.current = node;
+    if (node) applyLayerFade(node, hudFadeRef.current);
+  };
+
+  const setHintLayer = (node) => {
+    hintLayerRef.current = node;
+    if (node) applyLayerFade(node, hudFadeRef.current);
+  };
+
+  const prefetchDesktop = () => {
+    if (desktopPrefetchedRef.current) return;
+    desktopPrefetchedRef.current = true;
+    loadOsDesktop();
+  };
+
   useEffect(() => {
     setReduceMotion(prefersReducedMotion());
+  }, []);
+
+  useEffect(() => {
+    const warm = () => {
+      prefetchDesktop();
+      loadStickerForge().catch(() => {});
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+      const idle = window.requestIdleCallback(warm, { timeout: 1800 });
+      return () => window.cancelIdleCallback(idle);
+    }
+    const timer = window.setTimeout(warm, 800);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useLayoutEffect(() => {
@@ -248,6 +349,11 @@ export const MacHero = () => {
       const fade = fadeFromZoom(zoom);
       applyDesktopFade(fade);
       applyModelFade(1 - fade);
+
+      if (zoom >= 0.30) prefetchDesktop();
+
+      const hideHud = !homeLiveRef.current || desktopReadyRef.current || desktopLockedRef.current;
+      applyHudFade(hideHud ? 0 : Math.max(0, 1 - zoom / 0.32));
 
       if (homeLiveRef.current && zoom >= HOME_HIDE_ZOOM) {
         homeLiveRef.current = false;
@@ -268,15 +374,8 @@ export const MacHero = () => {
       }
 
       if (zoom >= LOCK_ZOOM) {
-        applyDesktopFade(1);
-        applyModelFade(0);
-        desktopReadyRef.current = true;
-        setDesktopReady(true);
-        setDesktopSettled(true);
-        setDesktopLocked(true);
+        commitDesktopLockRef.current();
       }
-
-      setProgress(next);
     };
 
     syncProgress();
@@ -288,15 +387,8 @@ export const MacHero = () => {
     };
   }, [reduceMotion]);
 
-  desktopLockedRef.current = desktopLocked;
-  if (!desktopLocked) {
-    progressRef.current = progress;
-    zoomDriveRef.current = zoomFromProgress(progress);
-  }
-  const zoomProgress = zoomFromProgress(progress);
+  if (desktopLocked) desktopLockedRef.current = true;
   const hideHomeChrome = !homeLive || desktopReady || desktopLocked;
-  const scrollChrome = Math.max(0, 1 - zoomProgress / 0.32);
-  const chromeOpacity = hideHomeChrome ? 0 : scrollChrome;
   const showHomeFx = !reduceMotion && !hideHomeChrome;
 
   useEffect(() => {
@@ -310,14 +402,21 @@ export const MacHero = () => {
     return undefined;
   }, [desktopLocked]);
 
+  useEffect(() => () => {
+    releasePageGuard();
+    document.documentElement.classList.remove('mac-hero-locked');
+  }, []);
+
   useEffect(() => {
     if (!desktopSettled) return undefined;
-    const timer = window.setTimeout(() => setModelMounted(false), 80);
+    const timer = window.setTimeout(() => setModelMounted(false), SETTLE_MS);
     return () => window.clearTimeout(timer);
   }, [desktopSettled]);
 
   const leaveToModel = useCallback(() => {
+    releasePageGuard();
     leaveDesktopRef.current = true;
+    desktopLockedRef.current = false;
     pendingScrollRef.current = 0;
     liteRef.current = false;
     zoomDriveRef.current = 0;
@@ -329,8 +428,8 @@ export const MacHero = () => {
     setDesktopLocked(false);
     setDesktopReady(false);
     setDesktopSettled(false);
-    setProgress(0);
     progressRef.current = 0;
+    applyHudFade(1);
     setModelMounted(true);
   }, []);
 
@@ -346,66 +445,31 @@ export const MacHero = () => {
   }, [desktopLocked]);
 
   useLayoutEffect(() => {
-    if (!desktopLocked) return undefined;
+    if (!desktopLocked) {
+      releasePageGuard();
+      return undefined;
+    }
 
-    const allowInner = (event) => (
-      event.target instanceof Element
-      && event.target.closest('.aqua-content, .aqua-browser__page, .aqua-browser__toc, .aqua-design-lightbox, .aqua-ipod-lcd')
-    );
-
-    const prevent = (event) => {
-      if (allowInner(event)) return;
-      event.preventDefault();
-    };
-
-    const onKey = (event) => {
-      if (!['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) return;
-      if (
-        event.target instanceof Element
-        && event.target.closest('input, textarea, [contenteditable="true"], .aqua-content, .aqua-browser__page')
-      ) {
-        return;
-      }
-      event.preventDefault();
-    };
-
-    window.addEventListener('wheel', prevent, { passive: false, capture: true });
-    window.addEventListener('touchmove', prevent, { passive: false, capture: true });
-    window.addEventListener('keydown', onKey);
+    applyPageScrollLock();
+    if (!pageGuardRef.current) {
+      const guard = createPageScrollGuard({ onBlock: pinPageScroll });
+      guard.attach();
+      pageGuardRef.current = guard;
+    }
+    pinPageScroll();
+    window.addEventListener('scroll', pinPageScroll);
     return () => {
-      window.removeEventListener('wheel', prevent, { capture: true });
-      window.removeEventListener('touchmove', prevent, { capture: true });
-      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('scroll', pinPageScroll);
+      if (leaveDesktopRef.current || !desktopLockedRef.current) {
+        releasePageGuard();
+        document.documentElement.classList.remove('mac-hero-locked');
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+        document.body.style.overscrollBehavior = '';
+        document.documentElement.style.overscrollBehavior = '';
+      }
     };
   }, [desktopLocked]);
-
-  useEffect(() => {
-    if (!desktopLocked) return undefined;
-
-    const pin = () => {
-      if (leaveDesktopRef.current) return;
-      if (desktopSettled && window.scrollY > 0) window.scrollTo(0, 0);
-    };
-
-    const previousOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    const previousBodyOverscroll = document.body.style.overscrollBehavior;
-    const previousHtmlOverscroll = document.documentElement.style.overscrollBehavior;
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overscrollBehavior = 'none';
-    document.documentElement.style.overscrollBehavior = 'none';
-    document.documentElement.classList.add('mac-hero-locked');
-    window.addEventListener('scroll', pin);
-    return () => {
-      document.documentElement.classList.remove('mac-hero-locked');
-      document.body.style.overflow = previousOverflow;
-      document.documentElement.style.overflow = previousHtmlOverflow;
-      document.body.style.overscrollBehavior = previousBodyOverscroll;
-      document.documentElement.style.overscrollBehavior = previousHtmlOverscroll;
-      window.removeEventListener('scroll', pin);
-    };
-  }, [desktopLocked, desktopSettled]);
 
   return (
     <div className={reduceMotion ? 'relative' : `relative ${desktopSettled && !modelMounted ? 'h-[100svh] overflow-hidden' : 'h-[380vh]'}`}>
@@ -421,12 +485,12 @@ export const MacHero = () => {
               rayColor1="#e0d3a8"
               rayColor2="#b0d2f8"
               intensity={2}
-              spread={2}
+              spread={2.65}
               origin="top-right"
               tilt={0}
               saturation={1.5}
               blend={0.75}
-              falloff={1.6}
+              falloff={1.32}
               opacity={1.0}
             />
           </div>
@@ -450,7 +514,7 @@ export const MacHero = () => {
             <MacRevealBoundary>
               <ClassicMacScreenModel
                 className="h-full w-full"
-                zoomProgress={reduceMotion ? 0 : zoomProgress}
+                zoomProgress={0}
                 zoomDriveRef={zoomDriveRef}
                 liteRef={liteRef}
                 transparentBackground
@@ -461,12 +525,9 @@ export const MacHero = () => {
 
         {!hideHomeChrome && (
           <div
+            ref={setHudLayer}
             data-mac-hud
             className="desk-intro-stage pointer-events-none absolute inset-0 z-[70]"
-            style={{
-              opacity: chromeOpacity,
-              visibility: chromeOpacity < 0.02 ? 'hidden' : 'visible',
-            }}
           >
             <div className="pointer-events-auto absolute left-4 top-8 w-[min(94vw,52rem)] cursor-pointer sm:left-6 sm:top-10">
               <Shuffle
@@ -517,7 +578,7 @@ export const MacHero = () => {
 
         {!reduceMotion && !hideHomeChrome && (
           <ScrollHint
-            opacity={chromeOpacity}
+            layerRef={setHintLayer}
             label="SCROLL TO ENTER DESKTOP"
           />
         )}
@@ -527,11 +588,13 @@ export const MacHero = () => {
             ref={setDesktopLayer}
             className="mac-hero__desktop-layer"
           >
-            <OsDesktop
-              className="absolute inset-0 h-full w-full"
-              interactive={desktopSettled}
-              onBack={leaveToModel}
-            />
+            <Suspense fallback={null}>
+              <OsDesktop
+                className="absolute inset-0 h-full w-full"
+                interactive={desktopSettled}
+                onBack={leaveToModel}
+              />
+            </Suspense>
           </div>
         )}
       </div>

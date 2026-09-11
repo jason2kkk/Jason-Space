@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import './App.css';
 import { MacHero } from './components/sections/mac-hero';
-import { OsDesktop } from './components/sections/os-desktop';
+
+const OsDesktop = lazy(() => (
+  import('./components/sections/os-desktop').then((mod) => ({ default: mod.OsDesktop }))
+));
 
 const previewDesktop = () => (
   typeof window !== 'undefined'
@@ -11,14 +14,16 @@ const previewDesktop = () => (
 function App() {
   if (previewDesktop()) {
     return (
-      <OsDesktop
-        interactive
-        lockScroll
-        onBack={() => {
-          window.location.assign('/');
-        }}
-        className="fixed inset-0"
-      />
+      <Suspense fallback={null}>
+        <OsDesktop
+          interactive
+          lockScroll
+          onBack={() => {
+            window.location.assign('/');
+          }}
+          className="fixed inset-0"
+        />
+      </Suspense>
     );
   }
 

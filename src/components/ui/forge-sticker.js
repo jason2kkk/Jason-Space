@@ -1,8 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 let stickerForgeLoader;
+let stickerEnterWave = 0;
+let stickerEnterWaveAt = 0;
 
 const emptyForgeOptions = {};
+
+const nextStickerEnterDelay = () => {
+  const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  if (now - stickerEnterWaveAt > 480) stickerEnterWave = 0;
+  stickerEnterWaveAt = now;
+  const delay = stickerEnterWave * 56;
+  stickerEnterWave += 1;
+  return delay;
+};
 
 export const aquaStickerForgeOptions = {
   outline: { width: 11, color: '#f2eee8' },
@@ -103,6 +114,7 @@ export const ForgeSticker = ({
   const mountRef = useRef(null);
   const peelResetTimerRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
+  const [enterDelayMs, setEnterDelayMs] = useState(0);
   const [fallbackSrc, setFallbackSrc] = useState(null);
   const [isPeeling, setIsPeeling] = useState(false);
 
@@ -245,6 +257,7 @@ export const ForgeSticker = ({
           });
           resizeObserver.observe(frame);
         }
+        setEnterDelayMs(nextStickerEnterDelay());
         setIsReady(true);
       })
       .catch((error) => {
@@ -262,8 +275,11 @@ export const ForgeSticker = ({
   return (
     <div
       ref={frameRef}
-      className={`aqua-forge-sticker${isPeeling ? ' is-peeling' : ''}${className ? ` ${className}` : ''}`}
-      style={style}
+      className={`aqua-forge-sticker${enabled ? ' is-forge-on' : ''}${isReady ? ' is-ready' : ''}${isPeeling ? ' is-peeling' : ''}${className ? ` ${className}` : ''}`}
+      style={{
+        ...style,
+        '--sticker-enter-delay': `${enterDelayMs}ms`,
+      }}
       aria-hidden={alt ? undefined : true}
       aria-label={alt || undefined}
     >

@@ -39,12 +39,3 @@ code {
     monospace;
 }
 
-/* 确保没有全局样式影响点击事件 */
-button {
-  pointer-events: auto;
-}
-
-/* 如果有任何全局遮罩层，确保它们不会阻止点击事件 */
-.overlay {
-  pointer-events: none;
-} 

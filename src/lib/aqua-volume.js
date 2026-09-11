@@ -96,20 +96,6 @@ export function subscribe(listener) {
   return () => listeners.delete(listener);
 }
 
-export function getAudioContext() {
-  return ensureGraph()?.context ?? null;
-}
-
-export function getMasterGain() {
-  return ensureGraph()?.gain ?? null;
-}
-
-export function connectToMaster(node) {
-  const gain = getMasterGain();
-  if (gain && node) node.connect(gain);
-  return gain;
-}
-
 export function unlockAudio() {
   ensureGraph();
 }
