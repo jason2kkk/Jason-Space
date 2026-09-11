@@ -383,7 +383,7 @@ const DemoClip = ({ src, poster, label = 'Demo', variant = 'phone' }) => {
       if (play?.catch) play.catch(() => {});
     }
     syncPlayButton(playing);
-  }, [expanded]);
+  }, [expanded, variant]);
 
   useEffect(() => {
     if (!expanded) return undefined;
@@ -392,6 +392,8 @@ const DemoClip = ({ src, poster, label = 'Demo', variant = 'phone' }) => {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+    // closeLightbox is defined below and only needs to run while expanded.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expanded]);
 
   const startHover = () => {
