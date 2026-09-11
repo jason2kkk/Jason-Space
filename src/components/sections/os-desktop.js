@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, animate, motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { CrtScreen } from '../ui/crt-screen';
 import { getVolume, playVolumeTick, setVolume, subscribe, unlockAudio } from '../../lib/aqua-volume';
 import { AquaIpod } from './aqua-ipod';
 import { ForgeSticker, aquaStickerForgeOptions } from '../ui/forge-sticker';
@@ -49,27 +48,6 @@ const windowCatalog = {
     y: 8,
     w: 720,
     h: 580,
-    card: true,
-  },
-  textedit: {
-    title: 'TextEdit',
-    x: 28,
-    y: 22,
-    w: 300,
-    card: true,
-  },
-  contacts: {
-    title: 'Address Book',
-    x: 46,
-    y: 28,
-    w: 280,
-    card: true,
-  },
-  calendar: {
-    title: 'iCal',
-    x: 54,
-    y: 14,
-    w: 260,
     card: true,
   },
   trash: {
@@ -133,9 +111,6 @@ const RESUME_DOWNLOAD_NAME = '何鹏伟的简历.pdf';
 const DOCK_TO_WINDOW = {
   finder: 'about',
   notes: 'notes',
-  textedit: 'textedit',
-  contacts: 'contacts',
-  calendar: 'calendar',
   appstore: 'apps',
   projects: 'projects',
   xiaohongshu: 'xiaohongshu',
@@ -920,7 +895,7 @@ const AboutMeBody = () => {
 
   return (
     <div className="aqua-about">
-      <img className="aqua-about__avatar" src="/images/desk/reference/avatar-pixel.png" alt="" draggable={false} />
+      <img className="aqua-about__avatar" src="/images/aqua/avatar-pixel.png" alt="" draggable={false} />
       <h2 className="aqua-about__name">Jason He</h2>
       <p className="aqua-about__role">AI产品经理 · 独立开发者 · 小红书博主</p>
       <div className="aqua-about__bio">
@@ -1024,33 +999,6 @@ const WindowBody = ({
 
   if (id === 'projects') {
     return <DesignGallery onPreview={onPreviewDesign} />;
-  }
-
-  if (id === 'textedit') {
-    return (
-      <div className="px-5 py-4 text-[13px] leading-relaxed text-[#333]">
-        <p className="mb-3 font-bold">Untitled</p>
-        <p className="text-[#666]">A TextEdit placeholder.</p>
-      </div>
-    );
-  }
-
-  if (id === 'contacts') {
-    return (
-      <div className="px-5 py-4 text-[13px] leading-relaxed text-[#333]">
-        <p className="mb-3 font-bold">Address Book</p>
-        <p>Jason He</p>
-        <p className="text-[#666]">jason2k@126.com</p>
-      </div>
-    );
-  }
-
-  if (id === 'calendar') {
-    return (
-      <div className="px-5 py-8 text-center text-[13px] text-[#666]">
-        iCal
-      </div>
-    );
   }
 
   if (id === 'trash') {
@@ -1214,7 +1162,6 @@ export const OsDesktop = React.memo(({
   desktopRef,
   className = '',
   onBack,
-  scanlineOpacity = 0,
   lockScroll = false,
 }) => {
   const frameRef = useRef(null);
@@ -1783,7 +1730,6 @@ export const OsDesktop = React.memo(({
           onStep={stepDesignPreview}
         />
       ) : null}
-      <CrtScreen opacity={scanlineOpacity} />
     </div>
   );
 });

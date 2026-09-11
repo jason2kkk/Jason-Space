@@ -531,7 +531,6 @@ export const MacHero = () => {
               className="absolute inset-0 h-full w-full"
               interactive={desktopSettled}
               onBack={leaveToModel}
-              scanlineOpacity={0}
             />
           </div>
         )}
