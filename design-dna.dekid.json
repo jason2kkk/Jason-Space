@@ -1,0 +1,312 @@
+{
+  "meta": {
+    "name": "Dekid Wu OS Portfolio",
+    "description": "macOS-inspired spatial portfolio: dark 3D Macintosh intro, then a light glass desktop with widgets, dock, Finder/Notes windows, iPod, and long-form case studies.",
+    "source_references": [
+      "https://dekidsocool.com/",
+      "https://dekidsocool.com/projects",
+      "https://dekidsocool.com/projects/ava-studio",
+      "https://dekidsocool.com/projects/hololaunch"
+    ],
+    "created_at": "2026-09-09"
+  },
+  "design_system": {
+    "color": {
+      "palette_type": "monochromatic",
+      "primary": { "hex": "#1B1B1B", "role": "primary text, active sidebar, dock labels" },
+      "secondary": { "hex": "#676767", "role": "tertiary text, captions, inactive counts" },
+      "accent": { "hex": "#FBFB50", "role": "status dot on View All Projects / All Projects List tab" },
+      "neutral": {
+        "scale": ["#FFFFFF", "#FDFDFD", "#F5F5F5", "#E0E0E0", "#E4E4E4", "#A1A1A1", "#737373", "#525252", "#1B1B1B", "#121212", "#0A0A0A"],
+        "usage": "Light canvas #E0E0E0 for OS desktop; near-black #121212 for intro overlay and 404; white translucent glass for windows"
+      },
+      "semantic": {
+        "success": "#30D158",
+        "warning": "#FBFB50",
+        "error": "#E40014",
+        "info": "#0A84FF"
+      },
+      "surface": {
+        "background": "#E0E0E0",
+        "card": "rgba(255,255,255,0.45)",
+        "elevated": "rgba(255,255,255,0.64)"
+      },
+      "contrast_strategy": "high contrast dark-on-light on the desktop; inverted white-on-#121212 for intro, case-study heroes, and 404"
+    },
+    "typography": {
+      "type_scale": {
+        "display": { "size": "32px", "weight": "500", "line_height": "40px", "tracking": "-0.02em" },
+        "heading_1": { "size": "32px", "weight": "500", "line_height": "1.25", "tracking": "-0.02em" },
+        "heading_2": { "size": "22px", "weight": "600", "line_height": "1.3", "tracking": "-0.01em" },
+        "heading_3": { "size": "16px", "weight": "600", "line_height": "1.35", "tracking": "-0.01em" },
+        "body": { "size": "16px", "weight": "400", "line_height": "1.5", "tracking": "-0.01em" },
+        "body_small": { "size": "14px", "weight": "500", "line_height": "1.42", "tracking": "-0.01em" },
+        "caption": { "size": "12px", "weight": "500", "line_height": "1.3", "tracking": "0" },
+        "overline": { "size": "11px", "weight": "500", "line_height": "1.2", "tracking": "0.04em" }
+      },
+      "font_families": {
+        "heading": "PP Monument Grotesk (Monument), fallback Avenir Next",
+        "body": "Avenir Next (Regular/Medium/DemiBold/Bold)",
+        "mono": "system UI mono used only for intro leetspeak overlays"
+      },
+      "font_style_notes": "Geometric-grotesk display (Monument) for the hero sentence; Avenir Next for all UI chrome, lists, and case-study body. Intro overlay uses a monospaced glitch/leetspeak treatment that is decorative, not informational."
+    },
+    "spacing": {
+      "base_unit": "4px",
+      "scale": [4, 8, 12, 16, 24, 32, 48, 64],
+      "content_density": "comfortable",
+      "section_rhythm": "Desktop is spatial, not sectional — widgets sit on a large canvas with ~24–48px gaps. Case studies use long vertical rhythm with large dark-space between media blocks."
+    },
+    "layout": {
+      "grid_system": "No traditional 12-col page grid on home. Spatial absolute canvas plus fixed chrome (top-left tab, top-right clock/sound, bottom dock, bottom-left visual map). Projects list uses a 3-column row: section label | year | title+role. Finder overlay is 4×3 icon grid inside an 840px modal.",
+      "max_content_width": "Case studies ~1200px; Notes window 640×480; Finder grid 840px / 88vw",
+      "columns": "Desktop: freeform. Projects list: 3. Finder: 4. Notes: sidebar 160px + content.",
+      "gutter": "16–24px between widgets; 1px hairline dividers on project list rows",
+      "breakpoints": "Desktop-first. Author states mobile is a basic adaptation. dvh used for window max-height.",
+      "alignment_tendency": "asymmetric spatial composition on desktop; left-aligned editorial lists on /projects; centered 3D object on intro"
+    },
+    "shape": {
+      "border_radius": {
+        "small": "8px",
+        "medium": "16px (rounded-2xl windows)",
+        "large": "22–24px (glass-card, rounded-3xl)",
+        "pill": "999px (sound toggle, dock, contact chip, TOC/close bars)"
+      },
+      "border_usage": "mostly none; glass uses 1px inset white highlight instead of stroke; sound toggle has 1px white border",
+      "divider_style": "1px #E4E4E4 hairlines on project list; 1px black/15 vertical separators in dock"
+    },
+    "elevation": {
+      "shadow_style": "soft diffused plus glass inset highlight",
+      "levels": {
+        "low": "inset 0 0 0 1px rgba(255,255,255,0.55)",
+        "medium": "0 4px 6px -4px rgba(0,0,0,0.10), 0 10px 15px -3px rgba(0,0,0,0.10)",
+        "high": "Finder/Notes overlay over blurred desktop; intro Macintosh casts contact shadow in 3D scene"
+      },
+      "depth_cues": "frosted glass, overlapping widgets, 3D Macintosh, iPod coverflow rotateY, visual-map miniature of the canvas"
+    },
+    "iconography": {
+      "style": "photoreal macOS Big Sur/Sonoma app icons in dock and Finder; tiny brand badges (Figma, Claude, Rive) as 6–17px chips",
+      "stroke_weight": "1.4px for custom SVG (search, chevrons)",
+      "size_scale": [16, 24, 48, 64, 96],
+      "preferred_set": "custom PNG dock icons + brand SVGs, not a generic icon font"
+    },
+    "motion": {
+      "easing": "spring mass 0.5 / stiffness 220 / damping 24 for window open; 200ms transform on project-card hover",
+      "duration_scale": {
+        "micro": "120–200ms",
+        "normal": "300–500ms",
+        "macro": "intro scroll-zoom ~1.5 viewport heights (~2s of user scroll)"
+      },
+      "entrance_pattern": "Intro: scroll-scrubbed camera push into Macintosh screen, then overlay unmounts. Windows: opacity 0 + scale 0.86 spring to 1. Coverflow: neighboring albums scale 0.72, rotateY ±28°, opacity 0.55.",
+      "exit_pattern": "Windows scale to 0.92 and fade; intro does not reverse once entered",
+      "philosophy": "cinematic intro, then playful OS microinteractions (peel stickers, click-wheel, dock, draggable windows)"
+    },
+    "components": {
+      "button_style": "Pill glass chips; yellow-dot + label + optional close X for navigation tabs; black/white pills on case-study chrome (Close / View Website / Contact Me)",
+      "input_style": "Finder search: pill, transparent field, 16px body, placeholder #676767, magnifying-glass SVG",
+      "card_style": "glass-card: rgba(255,255,255,0.45), radius 22px, inset white 1px, optional 8/16 padding. Project cards are image-led with caption under the poster.",
+      "navigation_pattern": "Fixed OS chrome + spatial canvas panning + Visual Map minimap. Secondary routes: /projects list and /projects/[slug] case studies.",
+      "modal_style": "macOS windows: traffic lights, 16px backdrop-blur, 1.8 saturate, draggable titlebar, centered with translate(-50%,-50%). Finder is a Launchpad overlay (icon grid + search), not a file-tree Finder.",
+      "list_style": "Projects page: year + Monument/Avenir title · subtitle, role in #676767, hairline separators. Notes sidebar: 14px medium, active row bg #1B1B1B text #FDFDFD rounded-lg.",
+      "component_notes": "Shared TrafficLights (close/minimize/zoom). Window manager via useWindow z-index + focus. Custom events notes:open / notes:close. Sound is a 24×48px glass switch. Contact is a fixed glass toast-card with mail glyph."
+    }
+  },
+  "design_style": {
+    "aesthetic": {
+      "mood": ["playful", "cinematic", "collector", "precise", "nostalgic"],
+      "visual_metaphor": "A personal Macintosh that boots into a living macOS desktop; the portfolio is an operating system, not a landing page",
+      "era_influence": "Classic Macintosh hardware + modern macOS Sonoma glass + Y2K/leetspeak intro overlay",
+      "genre": "interactive OS-portfolio / creative director personal site",
+      "personality_traits": ["showman", "meticulous", "tool-fluent", "wry"],
+      "adjectives": ["spatial", "frosted", "object-rich", "desktop-first"]
+    },
+    "visual_language": {
+      "complexity": "rich",
+      "ornamentation": "decorative physical objects (stickers, iPod, Macintosh) plus otherwise quiet UI chrome",
+      "whitespace_usage": "generous dark void on intro; medium on desktop canvas; large dark-space in case-study heroes",
+      "visual_weight_distribution": "intro mass is the 3D computer; desktop mass is the centered profile window plus scattered project posters; case studies put product UI screenshots as the visual hero",
+      "focal_strategy": "progressive reveal: stickered Mac → zoom into screen → spatial desktop → optional case study",
+      "contrast_level": "high",
+      "texture_usage": "plastic 3D casing, peelable vinyl stickers, frosted glass, photoreal album art, product screenshots"
+    },
+    "composition": {
+      "hierarchy_method": "scale contrast plus spatial isolation; Monument sentence is the only large type on the desktop",
+      "balance_type": "asymmetric",
+      "flow_direction": "intro is vertical scroll; desktop is horizontal/planar pan; case studies are vertical editorial scroll",
+      "grouping_strategy": "OS objects: widgets, windows, dock, minimap. Content grouped by Recents vs Past on the list page.",
+      "negative_space_role": "The grey canvas is the desk surface; empty space is part of the OS metaphor, not leftover margin"
+    },
+    "imagery": {
+      "photo_treatment": "full-bleed product UI captures, slightly overlapping and rounded; album photography unfiltered",
+      "illustration_style": "line-art sunglasses avatar (looping WebM) plus toy/character project art",
+      "graphic_elements": "traffic lights, yellow status dot, brand tool badges, iPod click wheel, visual-map rectangles",
+      "pattern_usage": "none as wallpaper; intro uses glitch monospace blocks in corners",
+      "image_shape": "rounded rectangles 16–24px; circular avatar; squircle Finder icons"
+    },
+    "interaction_feel": {
+      "feedback_style": "physical: peel, press-and-drag wheel, springy window spawn, hover scale on posters",
+      "hover_behavior": "project posters scale ~1.02 in 200ms; dock icons lift; sidebar rows tint black/4%",
+      "transition_personality": "smooth glide with a short spring on windows; cinematic camera on intro",
+      "loading_style": "intro is the loader — Macintosh screen shows a snapshot of the desktop before you enter",
+      "microinteraction_density": "high on home (stickers, sound, iPod, Finder, Notes, map); low on projects list; medium on case studies (TOC, media carousels)"
+    },
+    "brand_voice_in_ui": {
+      "tone": "casual first-person on the desktop ('Hi there, I'm Dekid… Let's create digital magic together!'); rigorous product-design English in case studies",
+      "formality": "informal chrome, professional case-study body",
+      "cta_style": "friendly invitation — Contact Me, View Website, View All Projects — never urgency",
+      "empty_state_approach": "default Next.js 404; Finder search filters the icon grid",
+      "error_tone": "neutral, system-like"
+    }
+  },
+  "visual_effects": {
+    "overview": {
+      "effect_intensity": "heavy-immersive",
+      "performance_tier": "heavy",
+      "fallback_strategy": "prefers-reduced-motion is read for map animation; mobile is a simplified adaptation; intro overlay can be skipped after first enter in-session",
+      "primary_technology": "React Three Fiber / Three.js (Fable5 Macintosh), Rive, sticker-forge, Framer Motion, CSS backdrop-filter"
+    },
+    "background_effects": {
+      "type": "none",
+      "description": "Solid #121212 intro void and solid #E0E0E0 desktop. No animated mesh gradient behind the OS.",
+      "technology": "CSS",
+      "params": {
+        "color_palette": ["#121212", "#E0E0E0"],
+        "speed": "n/a",
+        "density": "n/a",
+        "opacity": "1",
+        "blend_mode": "normal"
+      }
+    },
+    "particle_systems": {
+      "enabled": false,
+      "type": "none",
+      "description": "No particle field observed.",
+      "technology": "none",
+      "params": {
+        "count": "0",
+        "shape": "none",
+        "size_range": "n/a",
+        "movement_pattern": "none",
+        "color_behavior": "none",
+        "interaction": "none",
+        "spawn_area": "none"
+      }
+    },
+    "3d_elements": {
+      "enabled": true,
+      "type": "hero-model",
+      "description": "Beige compact Macintosh with floppy slot, power button, and a screen that displays a live/snapshot of the desktop. Camera dollies in on scroll until the overlay dismisses.",
+      "technology": "React Three Fiber + Three.js, credited by the author as Fable5 + Three.js",
+      "params": {
+        "renderer": "WebGL canvas ~3810×2160 at 2x DPR",
+        "lighting": "soft studio lighting, matte plastic, screen glow",
+        "camera": "scroll-scrubbed dolly/zoom into the CRT, slight low angle",
+        "materials": "off-white plastic, glass screen with homepage-screen.png texture, vinyl stickers as separate meshes/decals",
+        "geometry": "rounded CRT Macintosh all-in-one",
+        "post_processing": ["subtle bloom/glow on screen", "soft contact shadow"],
+        "interaction_model": "scroll-driven camera; stickers independently peelable; power button present"
+      }
+    },
+    "shader_effects": {
+      "enabled": true,
+      "type": "custom-GLSL",
+      "description": "Likely used for screen glow / sticker peel shading; exact GLSL not inspectable. Sticker-forge handles peel lighting.",
+      "technology": "WebGL / sticker-forge",
+      "params": {
+        "uniforms": "time, pointer, peel amount",
+        "vertex_manipulation": "sticker mesh lift along peel axis",
+        "fragment_output": "plastic specular + paper underside on peel",
+        "noise_type": "not confirmed",
+        "distortion": "peel curl, not full-screen warp"
+      }
+    },
+    "scroll_effects": {
+      "parallax": {
+        "enabled": true,
+        "layers": "2–3 (void, Macintosh, overlay type)",
+        "depth_range": "camera-to-screen distance compressed to 0 as you enter",
+        "speed_curve": "pinned/hijacked scroll across ~2430px then overlay unmounts"
+      },
+      "scroll_triggered_animations": {
+        "enabled": true,
+        "trigger_points": "intro progress 0→1 maps to camera; case-study media has in-view current-state buttons",
+        "animation_type": "camera dolly, overlay fade, window spring",
+        "scrub_behavior": "intro is scrubbed; desktop is not; case studies are native scroll"
+      },
+      "scroll_morphing": {
+        "enabled": true,
+        "description": "Macintosh framing morphs from object-in-void to full-bleed desktop as the camera enters the screen"
+      }
+    },
+    "text_effects": {
+      "type": "glitch",
+      "description": "Intro corners use leetspeak / scrambled monospace that visually ticks (N3xt-G3n Br@Nd Sy5tem). Desktop H1 is static Monument.",
+      "technology": "custom JS string scramble + CSS",
+      "params": {
+        "split_strategy": "by-line blocks in corners",
+        "animation_per_unit": "character substitution / flicker",
+        "stagger": "continuous while overlay is mounted",
+        "effect_style": "cyber/leetspeak, not split-letter hero"
+      }
+    },
+    "cursor_effects": {
+      "enabled": false,
+      "type": "none",
+      "description": "Native cursor. Grab/grabbing on window titlebars. No custom blob cursor.",
+      "params": {
+        "shape": "system",
+        "size": "default",
+        "blend_mode": "normal",
+        "trail": "none",
+        "interaction_zone": "titlebars become grab"
+      }
+    },
+    "image_effects": {
+      "type": "parallax-tilt",
+      "description": "iPod albums use CSS 3D coverflow. Project posters scale on hover. Case-study product shots layer with overlap, no hover distortion.",
+      "technology": "CSS 3D transforms + Framer Motion",
+      "params": {
+        "filter_pipeline": "none",
+        "hover_transform": "scale ~1.02, 200ms",
+        "reveal_animation": "none on posters; iPod neighbors fade to 0.55",
+        "distortion_type": "none"
+      }
+    },
+    "glassmorphism_neumorphism": {
+      "enabled": true,
+      "style": "frosted-layers",
+      "params": {
+        "blur_radius": "16px on windows; dock/cards similar",
+        "transparency": "white 45–64%, dock token --glass-dock #ffffff3d",
+        "border_treatment": "1px inset white 55%",
+        "shadow_type": "soft drop + inset highlight",
+        "light_source_angle": "top / implied window light"
+      }
+    },
+    "canvas_drawings": {
+      "enabled": true,
+      "type": "none",
+      "description": "WebGL canvas for Macintosh; a smaller 300×150 canvas is present (Rive and/or sticker helper). Visual Map is DOM rectangles, not a drawn canvas.",
+      "technology": "WebGL + Rive wasm",
+      "params": {
+        "draw_method": "GPU scene + Rive runtime",
+        "animation_loop": "rAF while intro overlay mounted; Rive loop on avatar",
+        "color_scheme": "warm plastic + dark void",
+        "responsiveness": "full-viewport overlay",
+        "interaction": "scroll + sticker drag + power button"
+      }
+    },
+    "svg_animations": {
+      "enabled": false,
+      "type": "none",
+      "description": "SVG used as static badges and stickers (Claude padded SVG), not SMIL path draws.",
+      "params": {
+        "animation_method": "none",
+        "path_morphing": false,
+        "stroke_animation": false,
+        "filter_effects": false
+      }
+    },
+    "composite_notes": "The site is two worlds composited: (1) a cinematic WebGL intro with peelable sticker-forge decals, Rive/WebM avatar on the Mac screen, and leetspeak HUD; (2) a CSS glass OS with Framer Motion windows, a pannable widget canvas, coverflow iPod with real mp3s, Launchpad Finder, Notes resume, and a separate dark editorial case-study template. Hosted on Vercel Next.js App Router. Desktop-optimized; mobile is intentionally unfinished per the author."
+  }
+}

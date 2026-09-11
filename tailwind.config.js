@@ -64,7 +64,8 @@ module.exports = {
         },
       },
       fontFamily: {
-        'outfit': ['Outfit', 'sans-serif'],
+        sans: ['Geist Pixel', 'ZhengGe DianHei', 'PingFang SC', 'sans-serif'],
+        outfit: ['Geist Pixel', 'ZhengGe DianHei', 'PingFang SC', 'sans-serif'],
       },
     },
   },
