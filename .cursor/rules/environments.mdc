@@ -1,0 +1,23 @@
+---
+description: 本地开发、正式环境与未授权发布约束
+alwaysApply: true
+---
+
+# 本地开发与正式环境
+
+## 环境
+
+- 本地开发：`npm start`，端口 **3008**
+- **正式环境 = 用户自有服务器**，不是 Cloudflare Pages / GitHub Pages
+- 推 `origin/main` 可能仍会触发 GitHub 上残留的 Cloudflare Pages 应用（项目名 `jason-space`）自动构建。忽略即可，那不是正式发布
+- 不要为了「上线」去改 Cloudflare / Pages / 任何托管配置
+- 界面里的 `jason.space` 只是展示文案，不是已确认的正式域名
+- 自有服务器的具体域名、路径、发布步骤以用户当次说明为准，不要编造
+
+## 未明确要求时禁止
+
+- 不要 `git push`（任何远程）
+- 不要部署、不要 commit
+- 不要把「线上 = Pages」或「线上 = `origin/main`」写进规则或文档
+
+当前工作可以在 `main` 上进行。不要再假设必须只改 `codex/redesign`，也不要把「禁止动 main」当成硬约束。

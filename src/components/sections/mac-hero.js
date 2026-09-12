@@ -546,8 +546,8 @@ export const MacHero = () => {
                 className="mac-hero__title"
               />
             </div>
-            <div className="absolute bottom-6 left-4 text-left sm:bottom-8 sm:left-7">
-              <div className="flex flex-col items-start gap-0 text-[22px] leading-8 tracking-[-0.012em] text-white/92 sm:text-[24px] sm:leading-9">
+            <div className="mac-hero__hud-copy absolute bottom-6 left-4 text-left sm:bottom-8 sm:left-7">
+              <div className="mac-hero__hud-lines flex flex-col items-start gap-0 text-[22px] leading-8 tracking-[-0.012em] text-white/92 sm:text-[24px] sm:leading-9">
                 {hudLines.map((line) => (
                   <DecryptedText
                     key={line}

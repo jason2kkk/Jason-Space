@@ -5,6 +5,7 @@ import { AquaIpod } from './aqua-ipod';
 import { ForgeSticker, aquaStickerForgeOptions } from '../ui/forge-sticker';
 import { BrowserWindowBody, WORK_APPS, browserSectionLabel } from '../ui/aqua-browser';
 import { createPageScrollGuard } from '../../lib/page-scroll-lock';
+import { matchesMobileLayout, useMobileLayout } from '../../lib/mobile-layout';
 
 const DOCK_ICON = 56;
 const DOCK_ICON_MAX = 88;
@@ -16,6 +17,7 @@ const NOTES_VIEW_INSET = 16;
 const BROWSER_MIN_W = 480;
 const BROWSER_MIN_H = 360;
 const BROWSER_DIM_Z = 85;
+const MENU_BAR_HEIGHT = 32;
 
 const windowCatalog = {
   finder: {
@@ -397,15 +399,17 @@ const dockMotion = (centered, delta = { x: 0, y: 140, scale: 0.14 }) => ({
   opacity: 0,
 });
 
-const formatMenuTime = (date) => new Intl.DateTimeFormat('en-US', {
-  weekday: 'short',
-  month: 'short',
-  day: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
-}).format(date);
+const formatMenuTime = (date, compact = false) => new Intl.DateTimeFormat('en-US', compact
+  ? { hour: 'numeric', minute: '2-digit' }
+  : {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
 
-const DockIcon = ({ item, interactive, active, onOpen, mouseX }) => {
+const DockIcon = ({ item, interactive, active, onOpen, mouseX, compact = false }) => {
   const ref = useRef(null);
   const [hovered, setHovered] = useState(false);
 
@@ -442,7 +446,7 @@ const DockIcon = ({ item, interactive, active, onOpen, mouseX }) => {
   const face = (
     <span className="aqua-dock__stack">
       <AnimatePresence>
-        {hovered && interactive && (
+        {hovered && interactive && !compact && (
           <span className="aqua-dock__tip">
             <motion.span
               initial={{ opacity: 0, y: 4 }}
@@ -455,7 +459,7 @@ const DockIcon = ({ item, interactive, active, onOpen, mouseX }) => {
           </span>
         )}
       </AnimatePresence>
-      <motion.span className="aqua-dock__icon" style={{ width: size, height: size }}>
+      <motion.span className="aqua-dock__icon" style={compact ? undefined : { width: size, height: size }}>
         <img className="aqua-dock__face" src={item.src} alt="" decoding="sync" draggable={false} />
         {active && <span className="aqua-dock__marker" aria-hidden />}
       </motion.span>
@@ -482,7 +486,7 @@ const DockIcon = ({ item, interactive, active, onOpen, mouseX }) => {
   );
 };
 
-const DockGroup = ({ items, interactive, runningIds, onOpen, mouseX }) => (
+const DockGroup = ({ items, interactive, runningIds, onOpen, mouseX, compact = false }) => (
   <div className="aqua-dock__group">
     {items.map((item) => (
       <DockIcon
@@ -492,6 +496,7 @@ const DockGroup = ({ items, interactive, runningIds, onOpen, mouseX }) => (
         active={runningIds.includes(DOCK_TO_WINDOW[item.id] || item.id)}
         onOpen={onOpen}
         mouseX={mouseX}
+        compact={compact}
       />
     ))}
   </div>
@@ -642,7 +647,7 @@ const DesktopToasts = ({ wave, onDismiss }) => {
   );
 };
 
-const DesktopDock = ({ interactive, runningIds, onOpen }) => {
+const DesktopDock = ({ interactive, runningIds, onOpen, compact = false }) => {
   const mouseX = useMotionValue(Infinity);
   const sepAt = dockItems.findIndex((item) => item.id === 'separator');
   const leftItems = dockItems.slice(0, sepAt);
@@ -652,17 +657,22 @@ const DesktopDock = ({ interactive, runningIds, onOpen }) => {
     <nav
       aria-label="Dock"
       className={`aqua-dock ${interactive ? 'pointer-events-auto' : 'pointer-events-none'}`}
-      onMouseMove={interactive ? (event) => mouseX.set(event.clientX) : undefined}
+      onMouseMove={interactive && !compact ? (event) => mouseX.set(event.clientX) : undefined}
       onMouseLeave={() => mouseX.set(Infinity)}
     >
-      <DockGroup items={leftItems} interactive={interactive} runningIds={runningIds} onOpen={onOpen} mouseX={mouseX} />
+      <DockGroup items={leftItems} interactive={interactive} runningIds={runningIds} onOpen={onOpen} mouseX={mouseX} compact={compact} />
       <span aria-hidden className="aqua-dock__sep" />
-      <DockGroup items={rightItems} interactive={interactive} runningIds={runningIds} onOpen={onOpen} mouseX={mouseX} />
+      <DockGroup items={rightItems} interactive={interactive} runningIds={runningIds} onOpen={onOpen} mouseX={mouseX} compact={compact} />
     </nav>
   );
 };
 
 const initialOpen = ['apps', 'xiaohongshu', 'about', 'ipod'];
+const initialZOrder = () => (
+  matchesMobileLayout()
+    ? ['apps', 'xiaohongshu', 'ipod', 'about']
+    : initialOpen
+);
 
 const ABOUT_SKILL_ICONS = [
   { src: '/images/aqua/skills/cursor.png', label: 'Cursor' },
@@ -704,7 +714,9 @@ const DESIGN_FLAT = DESIGN_GALLERIES.flatMap((group) => (
   }))
 ));
 
-const DesignGallery = ({ onPreview }) => (
+const DesignGallery = ({ onPreview }) => {
+  const narrow = useMobileLayout();
+  return (
   <div className="aqua-design">
     {DESIGN_GALLERIES.map((group) => (
       <section key={group.title} className="aqua-design__group">
@@ -717,6 +729,7 @@ const DesignGallery = ({ onPreview }) => (
               <figure
                 key={file}
                 className="aqua-design__frame"
+                onClick={narrow ? () => onPreview?.(index) : undefined}
                 onDoubleClick={() => onPreview?.(index)}
               >
                 <img
@@ -734,7 +747,8 @@ const DesignGallery = ({ onPreview }) => (
       </section>
     ))}
   </div>
-);
+  );
+};
 
 const DesignLightbox = ({ index, onClose, onStep }) => {
   const item = DESIGN_FLAT[index];
@@ -1082,6 +1096,7 @@ const AquaMenuBar = ({
 }) => {
   const [now, setNow] = useState(() => new Date());
   const [volumeOpen, setVolumeOpen] = useState(false);
+  const compact = useMobileLayout();
 
   useEffect(() => {
     const clock = window.setInterval(() => setNow(new Date()), 1000);
@@ -1123,7 +1138,7 @@ const AquaMenuBar = ({
           onClose={() => setVolumeOpen(false)}
         />
         <time className="tabular-nums" dateTime={now.toISOString()}>
-          {formatMenuTime(now)}
+          {formatMenuTime(now, compact)}
         </time>
       </div>
     </header>
@@ -1180,7 +1195,7 @@ export const OsDesktop = React.memo(({
   const minimizeDeltaRef = useRef({});
   const [openIds, setOpenIds] = useState(initialOpen);
   const [minimizedIds, setMinimizedIds] = useState([]);
-  const [zOrder, setZOrder] = useState(initialOpen);
+  const [zOrder, setZOrder] = useState(initialZOrder);
   const [positions, setPositions] = useState({});
   const [sizes, setSizes] = useState({});
   const [enterDeltas, setEnterDeltas] = useState({});
@@ -1192,6 +1207,7 @@ export const OsDesktop = React.memo(({
   const [browserWebTitle, setBrowserWebTitle] = useState('');
   const [browserOpenTick, setBrowserOpenTick] = useState(0);
   const [designPreview, setDesignPreview] = useState(null);
+  const narrow = useMobileLayout();
 
   useScrollLock(lockScroll && interactive);
 
@@ -1317,6 +1333,9 @@ export const OsDesktop = React.memo(({
 
   const handleDockOpen = (dockId) => {
     const id = DOCK_TO_WINDOW[dockId] || dockId;
+    if (narrow && id !== 'browser' && openIds.includes('browser')) {
+      minimizeWindow('browser');
+    }
     if (ALWAYS_OPEN.includes(id)) {
       if (!openIds.includes(id)) {
         setOpenIds((current) => (current.includes(id) ? current : [...current, id]));
@@ -1336,7 +1355,7 @@ export const OsDesktop = React.memo(({
   };
 
   const onResizePointerDown = (event, id, meta, corner = 'se') => {
-    if (!interactive || event.button !== 0) return;
+    if (!interactive || narrow || event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
     focusWindow(id);
@@ -1428,10 +1447,10 @@ export const OsDesktop = React.memo(({
         nextH = Math.min(nextH, resize.fh - resize.startTop);
       }
       if (resize.corner === 'ne' || resize.corner === 'nw') {
-        nextH = Math.min(nextH, resize.startBottom);
-        if (nextTop < 0) {
-          nextTop = 0;
-          nextH = resize.startBottom;
+        nextH = Math.min(nextH, resize.startBottom - MENU_BAR_HEIGHT);
+        if (nextTop < MENU_BAR_HEIGHT) {
+          nextTop = MENU_BAR_HEIGHT;
+          nextH = resize.startBottom - MENU_BAR_HEIGHT;
         }
       }
 
@@ -1459,6 +1478,10 @@ export const OsDesktop = React.memo(({
   const onTitlePointerDown = (event, id) => {
     if (!interactive || event.button !== 0) return;
     if (event.target.closest('[data-window-chrome], [data-ipod-sticker], .aqua-window__resize')) return;
+    if (narrow) {
+      focusWindow(id);
+      return;
+    }
     const frame = frameRef.current;
     const node = event.currentTarget.closest('[data-os-window]');
     if (!frame || !node) return;
@@ -1467,7 +1490,7 @@ export const OsDesktop = React.memo(({
     const frameBox = frame.getBoundingClientRect();
     const box = node.getBoundingClientRect();
     const pinnedLeft = box.left - frameBox.left;
-    const pinnedTop = box.top - frameBox.top;
+    const pinnedTop = Math.max(MENU_BAR_HEIGHT, box.top - frameBox.top);
     setPositions((current) => ({ ...current, [id]: { left: pinnedLeft, top: pinnedTop } }));
     dragRef.current = {
       id,
@@ -1484,7 +1507,10 @@ export const OsDesktop = React.memo(({
       const nextFrame = frameRef.current?.getBoundingClientRect();
       if (!nextFrame) return;
       const left = Math.min(Math.max(0, ev.clientX - nextFrame.left - drag.dx), drag.fw - drag.ww);
-      const top = Math.min(Math.max(0, ev.clientY - nextFrame.top - drag.dy), drag.fh - drag.wh);
+      const top = Math.min(
+        Math.max(MENU_BAR_HEIGHT, ev.clientY - nextFrame.top - drag.dy),
+        drag.fh - drag.wh,
+      );
       setPositions((current) => ({ ...current, [drag.id]: { left, top } }));
     };
     const up = () => {
@@ -1547,7 +1573,7 @@ export const OsDesktop = React.memo(({
     <div
       ref={setFrameRef}
       data-os-desktop
-      className={`aqua-desktop overflow-hidden ${interactive ? 'pointer-events-auto' : 'pointer-events-none'} ${className}`}
+      className={`aqua-desktop overflow-hidden ${narrow ? 'aqua-desktop--narrow' : ''} ${interactive ? 'pointer-events-auto' : 'pointer-events-none'} ${className}`}
       onPointerDown={onDesktopPointerDown}
       style={{
         transformOrigin: '50% 50%',
@@ -1622,7 +1648,7 @@ export const OsDesktop = React.memo(({
                 className={`aqua-ipod${interactive ? ' aqua-ipod--live' : ''}`}
                 style={{
                   ...(pos ? { left: pos.left, top: pos.top, right: 'auto' } : {}),
-                  zIndex: z,
+                  zIndex: narrow && zOrder[zOrder.length - 1] !== 'ipod' ? 18 : z,
                 }}
                 initial={interactive ? riseMotion(false) : rest}
                 animate={rest}
@@ -1636,7 +1662,7 @@ export const OsDesktop = React.memo(({
 
           const meta = windowCatalog[id];
           if (!meta) return null;
-          const centered = !pos && meta.center;
+          const centered = !narrow && !pos && meta.center;
           const rest = restMotion(centered);
           const enter = enterDeltas[id]
             ? dockMotion(centered, enterDeltas[id])
@@ -1656,8 +1682,8 @@ export const OsDesktop = React.memo(({
                 : meta.title}
               className={`absolute${meta.strip ? ' aqua-window--strip' : ''}${meta.card ? ' aqua-window--card' : ''}${meta.browser ? ' aqua-window--browser' : ''}${id === 'computer' ? ' aqua-window--computer' : ''}${id === 'projects' ? ' aqua-window--design' : ''}${id === 'notes' ? ' aqua-window--notes' : ''}`}
               interactive={interactive}
-              draggable
-              resizable={meta.browser}
+              draggable={!narrow}
+              resizable={!narrow && meta.browser}
               canMinimize={id !== 'computer' && meta.canMinimize !== false}
               onClose={() => closeWindow(id)}
               onMinimize={() => minimizeWindow(id)}
@@ -1679,7 +1705,7 @@ export const OsDesktop = React.memo(({
                   : meta.card
                     ? (windowH != null ? `${windowH}px` : 'auto')
                     : `${meta.h}%`,
-                ...(meta.browser
+                ...(!narrow && meta.browser
                   ? {
                     minWidth: `${BROWSER_MIN_W}px`,
                     minHeight: `${BROWSER_MIN_H}px`,
@@ -1687,7 +1713,7 @@ export const OsDesktop = React.memo(({
                     maxHeight: 'calc(100% - 132px)',
                   }
                   : {}),
-                ...(id === 'about' && meta.h != null
+                ...(!narrow && id === 'about' && meta.h != null
                   ? { minHeight: `${meta.h}px`, maxHeight: `${meta.h}px` }
                   : {}),
                 zIndex: id === 'browser' ? Math.max(z, BROWSER_DIM_Z + 1) : z,
@@ -1745,7 +1771,7 @@ export const OsDesktop = React.memo(({
         })}
       </AnimatePresence>
 
-      <DesktopDock interactive={interactive} runningIds={runningIds} onOpen={handleDockOpen} />
+      <DesktopDock interactive={interactive} runningIds={runningIds} onOpen={handleDockOpen} compact={narrow} />
       {designPreview != null ? (
         <DesignLightbox
           index={designPreview}

@@ -1,5 +1,12 @@
 # 个人简历网站
 
+## 环境
+
+- 本地开发：`npm start`，端口 **3008**
+- 正式环境：用户自有服务器。域名、路径和发布步骤以当次说明为准，不要编造
+- Cloudflare Pages / GitHub Pages 不是正式站。推 `main` 可能仍会触发残留的 Pages 构建（GitHub 项目名 `jason-space`），忽略即可
+- 界面文案里的 `jason.space` 不是已确认的正式域名
+
 ## 最近更新
 ### 2024-01-18
 - 优化了导航栏功能
@@ -227,9 +234,8 @@
    - robots.txt 配置
 
 4. 环境配置
-   - 域名购买和解析
-   - SSL 证书配置
-   - 选择合适的托管平台（如 Vercel、Netlify）
+   - 正式发布走自有服务器，不要按 Cloudflare Pages / GitHub Pages / Vercel / Netlify 去改托管配置
+   - 域名、路径、SSL 以用户当次说明为准，不要编造
 
 5. 监控和分析
    - 错误监控

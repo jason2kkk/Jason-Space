@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { MOBILE_MQ } from '../../lib/mobile-layout';
 
 export const CLASSIC_MAC_SCREEN_URL = '/models/Mac1-screen-updated.glb';
 
@@ -11,6 +12,7 @@ const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const YAW_LIMIT = THREE.MathUtils.degToRad(36);
 const MODEL_LIFT = 0.22;
 const LOOK_LIFT = 0.06;
+const MOBILE_OVERVIEW_LOOK_DROP = 0.62;
 const FOLLOW_YAW = THREE.MathUtils.degToRad(34);
 const SCREEN_NAMES = new Set(['Material #1']);
 const RAW_SCREEN = {
@@ -245,7 +247,9 @@ export default function ClassicMacScreenModel({
       console.error('[ClassicMacScreenModel] WebGLRenderer', err);
       return undefined;
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const narrowMq = window.matchMedia(MOBILE_MQ);
+    const maxPixelRatio = () => (narrowMq.matches ? 1.25 : 2);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio()));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.78;
@@ -303,6 +307,7 @@ export default function ClassicMacScreenModel({
       currentYaw: 0,
       down: false,
       axis: null,
+      capturedId: null,
       lastX: 0,
       lastY: 0,
     };
@@ -315,7 +320,9 @@ export default function ClassicMacScreenModel({
       const top = rig.mid.y + rig.size.y * 0.5;
       const halfH = Math.max(lookY - 0, top - lookY, rig.size.y * 0.5) * 1.08;
       const halfW = Math.max(rig.size.x * 0.54, rig.screenSize.x * 0.58);
-      rig.overviewDist = Math.max(7.6, Math.max(halfH / halfTan, halfW / (halfTan * aspect)) * 1.38);
+      const overviewPad = narrowMq.matches ? 1.72 : 1.38;
+      const overviewFloor = narrowMq.matches ? 9.4 : 7.6;
+      rig.overviewDist = Math.max(overviewFloor, Math.max(halfH / halfTan, halfW / (halfTan * aspect)) * overviewPad);
       const screenW = Math.max(rig.screenSize.x, 0.01);
       const screenH = Math.max(rig.screenSize.y, 0.01);
       const distH = (screenH * 0.5) / halfTan;
@@ -328,6 +335,9 @@ export default function ClassicMacScreenModel({
       const t = direct ? raw : easeInOutQuad(raw);
       const focus = rig.screenCenter.clone();
       focus.y -= (MODEL_LIFT - LOOK_LIFT) * (1 - t);
+      if (narrowMq.matches) {
+        focus.y -= MOBILE_OVERVIEW_LOOK_DROP * (1 - t);
+      }
       const dist = THREE.MathUtils.lerp(rig.overviewDist, rig.closeDist, t);
       const dampedYaw = yaw * (1 - t);
       const offset = new THREE.Vector3(0, 0, dist);
@@ -345,6 +355,14 @@ export default function ClassicMacScreenModel({
         if (!state.axis) {
           if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
           state.axis = Math.abs(dx) > Math.abs(dy) * 1.05 ? 'orbit' : 'scroll';
+          if (state.axis === 'orbit' && narrowMq.matches && event.pointerId != null) {
+            try {
+              renderer.domElement.setPointerCapture(event.pointerId);
+              state.capturedId = event.pointerId;
+            } catch {
+              state.capturedId = null;
+            }
+          }
         }
         if (state.axis !== 'orbit') return;
         state.targetYaw = THREE.MathUtils.clamp(state.targetYaw - dx * 0.006, -YAW_LIMIT, YAW_LIMIT);
@@ -361,21 +379,36 @@ export default function ClassicMacScreenModel({
       if (zoomRef.current > 0.28) return;
       state.down = true;
       state.axis = null;
+      state.capturedId = null;
       state.lastX = event.clientX;
       state.lastY = event.clientY;
     };
     const onPointerUp = () => {
+      if (state.capturedId != null) {
+        try {
+          renderer.domElement.releasePointerCapture(state.capturedId);
+        } catch {
+          /* already released */
+        }
+      }
       state.down = false;
       state.axis = null;
+      state.capturedId = null;
     };
     const onPointerLeave = () => {
       if (!state.down) state.followYaw = 0;
+    };
+    const onTouchMove = (event) => {
+      if (!narrowMq.matches || !state.down || state.axis !== 'orbit') return;
+      if (event.cancelable) event.preventDefault();
     };
 
     renderer.domElement.addEventListener('pointermove', onPointerMove);
     renderer.domElement.addEventListener('pointerdown', onPointerDown);
     renderer.domElement.addEventListener('pointerleave', onPointerLeave);
+    renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
     window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
 
     let frame;
     const loader = new GLTFLoader();
@@ -431,8 +464,13 @@ export default function ClassicMacScreenModel({
       camera.updateProjectionMatrix();
       if (rig.ready) updateDistances();
     };
+    const onNarrowChange = () => {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio()));
+      resize();
+    };
     const observer = new ResizeObserver(resize);
     observer.observe(mount);
+    narrowMq.addEventListener('change', onNarrowChange);
     resize();
 
     let appliedZoom = THREE.MathUtils.clamp(zoomRef.current, 0, 1);
@@ -442,7 +480,7 @@ export default function ClassicMacScreenModel({
       liteApplied = lite;
       const width = Math.max(1, mount.clientWidth);
       const height = Math.max(1, mount.clientHeight);
-      renderer.setPixelRatio(lite ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setPixelRatio(lite ? 1 : Math.min(window.devicePixelRatio || 1, maxPixelRatio()));
       renderer.setSize(width, height, false);
       renderer.shadowMap.enabled = !lite;
     };
@@ -483,10 +521,13 @@ export default function ClassicMacScreenModel({
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      narrowMq.removeEventListener('change', onNarrowChange);
       renderer.domElement.removeEventListener('pointermove', onPointerMove);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
       renderer.domElement.removeEventListener('pointerleave', onPointerLeave);
+      renderer.domElement.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
       pmrem.dispose();
       renderer.dispose();
       if (renderer.domElement.parentNode === mount) {

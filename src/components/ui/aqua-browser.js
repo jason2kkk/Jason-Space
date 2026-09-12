@@ -1097,7 +1097,7 @@ const PRODUCT_PAGES = {
     title: 'Pockit -独立开发者收入看板',
     copy: '一款帮助开发者便捷追踪App收入表现的应用，随时在手机上查看App销量、收入、转化、来源、评分等数据，并获取实时订单与排名变化通知',
     honors: [
-      { kicker: 'App Store', title: '软件开发榜', value: '#90' },
+      { kicker: 'App Store', title: '软件开发榜', value: '#49' },
     ],
     storeHref: POCKIT_STORE_URL,
     shotGroups: [

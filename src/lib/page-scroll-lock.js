@@ -2,6 +2,7 @@ export const INNER_SCROLL_SELECTOR = [
   '.aqua-content',
   '.aqua-browser__page',
   '.aqua-browser__toc',
+  '.aqua-browser__shots',
   '.aqua-design-lightbox',
   '.aqua-ipod-lcd',
 ].join(', ');
@@ -27,20 +28,34 @@ const canAbsorbDelta = (node, dx, dy) => {
   return false;
 };
 
+const findAbsorbingNode = (start, dx, dy) => {
+  let node = start instanceof Element ? start : null;
+  while (node) {
+    if (canAbsorbDelta(node, dx, dy)) return node;
+    node = node.parentElement;
+  }
+  return null;
+};
+
+const wheelPixels = (event, node, delta) => {
+  if (event.deltaMode === 1) return delta * 16;
+  if (event.deltaMode === 2) return delta * (node.clientHeight || 1);
+  return delta;
+};
+
 export const shouldAllowInnerScroll = (event, touchDelta) => {
   const target = event.target;
   if (!(target instanceof Element)) return false;
-  const root = target.closest(INNER_SCROLL_SELECTOR);
-  if (!root) return false;
+  if (!target.closest(INNER_SCROLL_SELECTOR)) return false;
 
   const dx = touchDelta?.x ?? event.deltaX ?? 0;
   const dy = touchDelta?.y ?? event.deltaY ?? 0;
-  let node = target;
-  while (node && root.contains(node)) {
-    if (canAbsorbDelta(node, dx, dy)) return true;
-    node = node.parentElement;
-  }
-  return canAbsorbDelta(root, dx, dy);
+  const preferY = Math.abs(dy) >= Math.abs(dx);
+  const absorber = preferY
+    ? findAbsorbingNode(target, 0, dy) || findAbsorbingNode(target, dx, dy)
+    : findAbsorbingNode(target, dx, 0) || findAbsorbingNode(target, dx, dy);
+
+  return Boolean(absorber?.closest(INNER_SCROLL_SELECTOR));
 };
 
 export const createPageScrollGuard = (options = {}) => {
@@ -63,7 +78,29 @@ export const createPageScrollGuard = (options = {}) => {
       lastTouchX = touch.clientX;
       lastTouchY = touch.clientY;
     }
-    if (shouldAllowInnerScroll(event, touchDelta)) return;
+
+    const dx = touchDelta?.x ?? event.deltaX ?? 0;
+    const dy = touchDelta?.y ?? event.deltaY ?? 0;
+
+    if (shouldAllowInnerScroll(event, touchDelta)) {
+      const target = event.target;
+      if (
+        target instanceof Element
+        && Math.abs(dy) >= Math.abs(dx)
+        && dy
+      ) {
+        const hovered = target.closest(INNER_SCROLL_SELECTOR);
+        if (hovered && !canAbsorbDelta(hovered, 0, dy)) {
+          const yNode = findAbsorbingNode(target, 0, dy);
+          if (yNode?.closest(INNER_SCROLL_SELECTOR)) {
+            yNode.scrollTop += touch ? dy : wheelPixels(event, yNode, dy);
+            event.preventDefault();
+          }
+        }
+      }
+      return;
+    }
+
     event.preventDefault();
     options.onBlock?.(event);
   };
