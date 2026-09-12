@@ -2915,6 +2915,23 @@ body {
   font-weight: 700;
 }
 
+.mac-hero__scroll-hint-swap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: min(22.5em, calc(100vw - 48px));
+  min-height: 1.25em;
+}
+
+.mac-hero__scroll-hint-swap.is-zh {
+  letter-spacing: 0.22em;
+}
+
+.mac-hero__scroll-hint-decrypt {
+  display: block;
+  text-align: center;
+}
+
 .mac-hero__scroll-icon {
   width: 28px;
   height: 44px;

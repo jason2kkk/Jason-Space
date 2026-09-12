@@ -16,6 +16,7 @@ export default function DecryptedText({
   clickMode = 'once',
   startDelay = 0,
   loopHold = 1600,
+  onDecrypted,
   ...props
 }) {
   const [displayText, setDisplayText] = useState(text);
@@ -29,6 +30,8 @@ export default function DecryptedText({
   const orderRef = useRef([]);
   const pointerRef = useRef(0);
   const intervalRef = useRef(null);
+  const onDecryptedRef = useRef(onDecrypted);
+  onDecryptedRef.current = onDecrypted;
 
   const availableChars = useMemo(() => (
     useOriginalCharsOnly
@@ -163,6 +166,7 @@ export default function DecryptedText({
             clearInterval(intervalRef.current);
             setIsAnimating(false);
             setIsDecrypted(true);
+            onDecryptedRef.current?.();
             return prevRevealed;
           }
 
@@ -193,6 +197,7 @@ export default function DecryptedText({
             setIsAnimating(false);
             setDisplayText(text);
             setIsDecrypted(true);
+            onDecryptedRef.current?.();
           }
           return prevRevealed;
         } else if (direction === 'reverse') {
@@ -318,6 +323,7 @@ export default function DecryptedText({
 
   useEffect(() => {
     if (animateOn !== 'loop' || isAnimating || !isDecrypted) return undefined;
+    if (loopHold == null) return undefined;
     const holdTimer = window.setTimeout(() => {
       encryptInstantly();
       window.setTimeout(() => triggerDecrypt(), 60);

@@ -235,7 +235,7 @@ export default function ClassicMacScreenModel({
     let renderer;
     try {
       renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: (window.devicePixelRatio || 1) <= 1,
         alpha: clearBehind,
         powerPreference: 'high-performance',
         failIfMajorPerformanceCaveat: false,
@@ -248,13 +248,13 @@ export default function ClassicMacScreenModel({
       return undefined;
     }
     const narrowMq = window.matchMedia(MOBILE_MQ);
-    const maxPixelRatio = () => (narrowMq.matches ? 1.25 : 2);
+    const maxPixelRatio = () => (narrowMq.matches ? 1.25 : 1.5);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio()));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.78;
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.domElement.setAttribute('aria-label', 'Classic Macintosh 3D model');
     renderer.domElement.style.display = 'block';
     renderer.domElement.style.width = '100%';
@@ -270,7 +270,9 @@ export default function ClassicMacScreenModel({
     const key = new THREE.DirectionalLight('#f2eee8', 0.82);
     key.position.set(2.4, 6.2, 5.8);
     key.castShadow = true;
-    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.mapSize.set(512, 512);
+    key.shadow.autoUpdate = false;
+    key.shadow.needsUpdate = true;
     scene.add(key);
     const fill = new THREE.DirectionalLight('#ddd6cc', 0.30);
     fill.position.set(-4.2, 2.4, 3.2);
@@ -330,17 +332,31 @@ export default function ClassicMacScreenModel({
       rig.closeDist = Math.max(0.42, Math.min(distH, distW) * 0.94);
     };
 
+    const focus = new THREE.Vector3();
+    const offset = new THREE.Vector3();
+    const viewRect = { left: 0, top: 0, right: 1, bottom: 1, width: 1, height: 1 };
+
+    const syncViewRect = () => {
+      const next = renderer.domElement.getBoundingClientRect();
+      viewRect.left = next.left;
+      viewRect.top = next.top;
+      viewRect.right = next.right;
+      viewRect.bottom = next.bottom;
+      viewRect.width = next.width;
+      viewRect.height = next.height;
+    };
+
     const placeCamera = (zoom, yaw, direct = false) => {
       const raw = THREE.MathUtils.clamp(zoom, 0, 1);
       const t = direct ? raw : easeInOutQuad(raw);
-      const focus = rig.screenCenter.clone();
+      focus.copy(rig.screenCenter);
       focus.y -= (MODEL_LIFT - LOOK_LIFT) * (1 - t);
       if (narrowMq.matches) {
         focus.y -= MOBILE_OVERVIEW_LOOK_DROP * (1 - t);
       }
       const dist = THREE.MathUtils.lerp(rig.overviewDist, rig.closeDist, t);
       const dampedYaw = yaw * (1 - t);
-      const offset = new THREE.Vector3(0, 0, dist);
+      offset.set(0, 0, dist);
       offset.applyAxisAngle(Y_AXIS, dampedYaw);
       camera.position.copy(focus).add(offset);
       camera.lookAt(focus);
@@ -370,17 +386,16 @@ export default function ClassicMacScreenModel({
         state.lastY = event.clientY;
         return;
       }
-      const rect = renderer.domElement.getBoundingClientRect();
-      if (!rect.width) return;
-      const inside = event.clientX >= rect.left
-        && event.clientX <= rect.right
-        && event.clientY >= rect.top
-        && event.clientY <= rect.bottom;
+      if (!viewRect.width) syncViewRect();
+      const inside = event.clientX >= viewRect.left
+        && event.clientX <= viewRect.right
+        && event.clientY >= viewRect.top
+        && event.clientY <= viewRect.bottom;
       if (!inside) {
         state.followYaw = 0;
         return;
       }
-      const nx = THREE.MathUtils.clamp(((event.clientX - rect.left) / rect.width) * 2 - 1, -1, 1);
+      const nx = THREE.MathUtils.clamp(((event.clientX - viewRect.left) / viewRect.width) * 2 - 1, -1, 1);
       state.followYaw = -nx * FOLLOW_YAW;
     };
     const onPointerDown = (event) => {
@@ -470,6 +485,7 @@ export default function ClassicMacScreenModel({
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
+      syncViewRect();
       if (rig.ready) updateDistances();
     };
     const onNarrowChange = () => {
@@ -483,6 +499,7 @@ export default function ClassicMacScreenModel({
 
     let appliedZoom = THREE.MathUtils.clamp(zoomRef.current, 0, 1);
     let liteApplied = false;
+    let lastFrame = performance.now();
     const applyLite = (lite) => {
       if (liteApplied === lite) return;
       liteApplied = lite;
@@ -491,9 +508,13 @@ export default function ClassicMacScreenModel({
       renderer.setPixelRatio(lite ? 1 : Math.min(window.devicePixelRatio || 1, maxPixelRatio()));
       renderer.setSize(width, height, false);
       renderer.shadowMap.enabled = !lite;
+      if (!lite) key.shadow.needsUpdate = true;
     };
     const animate = () => {
       frame = requestAnimationFrame(animate);
+      const now = performance.now();
+      const dt = Math.min(0.05, (now - lastFrame) / 1000);
+      lastFrame = now;
       const drive = driveRef.current;
       const targetZoom = THREE.MathUtils.clamp(
         drive ? drive.current : zoomRef.current,
@@ -505,14 +526,15 @@ export default function ClassicMacScreenModel({
       if (snap) {
         appliedZoom = targetZoom;
       } else {
-        const catchup = targetZoom >= 0.82 ? 0.46 : targetZoom >= 0.45 ? 0.30 : 0.09;
+        const catchup = 1 - Math.exp(-(targetZoom >= 0.82 ? 8 : targetZoom >= 0.45 ? 4.5 : 1.2) * dt);
         appliedZoom += (targetZoom - appliedZoom) * catchup;
         if (Math.abs(targetZoom - appliedZoom) < 0.0008) appliedZoom = targetZoom;
       }
       const zoom = appliedZoom;
+      const settle = 1 - Math.exp(-14 * dt);
       if (zoom > 0.05) {
-        state.targetYaw += (0 - state.targetYaw) * 0.1;
-        state.followYaw += (0 - state.followYaw) * 0.12;
+        state.targetYaw += (0 - state.targetYaw) * settle;
+        state.followYaw += (0 - state.followYaw) * settle;
       }
       const followScale = zoom > 0.12 ? 0 : 1;
       const desired = THREE.MathUtils.clamp(
@@ -520,7 +542,7 @@ export default function ClassicMacScreenModel({
         -YAW_LIMIT,
         YAW_LIMIT,
       );
-      state.currentYaw += (desired - state.currentYaw) * 0.1;
+      state.currentYaw += (desired - state.currentYaw) * settle;
       if (rig.ready) placeCamera(zoom, state.currentYaw, snap);
       renderer.render(scene, camera);
     };

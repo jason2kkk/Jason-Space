@@ -169,26 +169,63 @@ const FallingStickers = ({ reduceMotion }) => {
   );
 };
 
-const ScrollHint = ({ layerRef, label }) => (
-  <div
-    ref={layerRef}
-    data-scroll-hint
-    className="mac-hero__scroll-hint pointer-events-none absolute bottom-[5%] left-1/2 z-[80] flex -translate-x-1/2 flex-col items-center gap-2.5 text-[12px] font-bold tracking-[0.18em] text-white/55 sm:bottom-[4%] sm:text-[13px]"
-  >
-    <span className="font-bold">{label}</span>
-    <svg
-      className="desk-scroll-hint__mouse mac-hero__scroll-icon"
-      width="28"
-      height="44"
-      viewBox="0 0 18 28"
-      fill="none"
-      aria-hidden="true"
+const SCROLL_HINTS = [
+  { lang: 'en', text: 'SCROLL TO ENTER DESKTOP' },
+  { lang: 'zh', text: '向下滚动进入桌面' },
+];
+
+const ScrollHint = ({ layerRef }) => {
+  const [hintIndex, setHintIndex] = useState(0);
+  const holdTimerRef = useRef(0);
+  const hint = SCROLL_HINTS[hintIndex];
+
+  useEffect(() => () => window.clearTimeout(holdTimerRef.current), []);
+
+  const onDecrypted = useCallback(() => {
+    window.clearTimeout(holdTimerRef.current);
+    holdTimerRef.current = window.setTimeout(() => {
+      setHintIndex((current) => (current + 1) % SCROLL_HINTS.length);
+    }, 1500);
+  }, []);
+
+  return (
+    <div
+      ref={layerRef}
+      data-scroll-hint
+      className="mac-hero__scroll-hint pointer-events-none absolute bottom-[5%] left-1/2 z-[80] flex -translate-x-1/2 flex-col items-center gap-2.5 text-[12px] font-bold tracking-[0.18em] text-white/55 sm:bottom-[4%] sm:text-[13px]"
     >
-      <rect x="1" y="1" width="16" height="26" rx="8" stroke="currentColor" strokeWidth="1.4" />
-      <rect x="8" y="6" width="2" height="6" rx="1" fill="currentColor" />
-    </svg>
-  </div>
-);
+      <span className={`mac-hero__scroll-hint-swap${hint.lang === 'zh' ? ' is-zh' : ''}`}>
+        <DecryptedText
+          key={hint.lang}
+          text={hint.text}
+          speed={HUD_DECRYPT_SPEED}
+          maxIterations={10}
+          sequential
+          revealDirection="start"
+          animateOn="loop"
+          startDelay={0}
+          loopHold={null}
+          onDecrypted={onDecrypted}
+          characters="ABCDEFGHJKLMNPQRSTUVWXYZ0123456789@#$%&*"
+          parentClassName="mac-hero__scroll-hint-decrypt"
+          className="text-white/55"
+          encryptedClassName="text-white/22"
+        />
+      </span>
+      <svg
+        className="desk-scroll-hint__mouse mac-hero__scroll-icon"
+        width="28"
+        height="44"
+        viewBox="0 0 18 28"
+        fill="none"
+        aria-hidden="true"
+      >
+        <rect x="1" y="1" width="16" height="26" rx="8" stroke="currentColor" strokeWidth="1.4" />
+        <rect x="8" y="6" width="2" height="6" rx="1" fill="currentColor" />
+      </svg>
+    </div>
+  );
+};
 
 const applyLayerFade = (node, value, pointerAt) => {
   if (!node) return;
@@ -577,10 +614,7 @@ export const MacHero = () => {
         )}
 
         {!reduceMotion && !hideHomeChrome && (
-          <ScrollHint
-            layerRef={setHintLayer}
-            label="SCROLL TO ENTER DESKTOP"
-          />
+          <ScrollHint layerRef={setHintLayer} />
         )}
 
         {!reduceMotion && desktopReady && (
