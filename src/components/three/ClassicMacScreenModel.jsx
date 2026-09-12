@@ -372,6 +372,14 @@ export default function ClassicMacScreenModel({
       }
       const rect = renderer.domElement.getBoundingClientRect();
       if (!rect.width) return;
+      const inside = event.clientX >= rect.left
+        && event.clientX <= rect.right
+        && event.clientY >= rect.top
+        && event.clientY <= rect.bottom;
+      if (!inside) {
+        state.followYaw = 0;
+        return;
+      }
       const nx = THREE.MathUtils.clamp(((event.clientX - rect.left) / rect.width) * 2 - 1, -1, 1);
       state.followYaw = -nx * FOLLOW_YAW;
     };
@@ -403,7 +411,7 @@ export default function ClassicMacScreenModel({
       if (event.cancelable) event.preventDefault();
     };
 
-    renderer.domElement.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointermove', onPointerMove);
     renderer.domElement.addEventListener('pointerdown', onPointerDown);
     renderer.domElement.addEventListener('pointerleave', onPointerLeave);
     renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
@@ -522,7 +530,7 @@ export default function ClassicMacScreenModel({
       cancelAnimationFrame(frame);
       observer.disconnect();
       narrowMq.removeEventListener('change', onNarrowChange);
-      renderer.domElement.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointermove', onPointerMove);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
       renderer.domElement.removeEventListener('pointerleave', onPointerLeave);
       renderer.domElement.removeEventListener('touchmove', onTouchMove);
