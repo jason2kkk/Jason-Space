@@ -829,8 +829,8 @@ const XHS_ACCOUNTS = [
     name: '2kk',
     src: encodeURI('/小红书2.png'),
     stats: [
-      { type: 'follow', value: '2560+' },
-      { type: 'like', value: '8300+' },
+      { type: 'follow', value: '2700+' },
+      { type: 'like', value: '8800+' },
       { type: 'read', value: '30w+' },
     ],
     url: 'https://www.xiaohongshu.com/user/profile/65438390000000000301e354?xsec_token=&xsec_source=pc_note',
